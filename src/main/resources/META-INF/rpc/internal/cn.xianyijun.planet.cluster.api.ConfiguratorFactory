@@ -1,0 +1,2 @@
+override=cn.xianyijun.planet.cluster.support.configurator.override.OverrideConfiguratorFactory
+absent=cn.xianyijun.planet.cluster.support.configurator.absent.AbsentConfiguratorFactory

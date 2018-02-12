@@ -1,0 +1,2 @@
+rpc=cn.xianyijun.planet.registry.api.support.RpcRegistryFactory
+zookeeper=cn.xianyijun.planet.registry.zookeeper.ZookeeperRegistryFactory

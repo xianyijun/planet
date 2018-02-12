@@ -1,0 +1,2 @@
+spring=cn.xianyijun.planet.container.spring.SpringContainer
+logback=cn.xianyijun.planet.container.logback.LogbackContainer

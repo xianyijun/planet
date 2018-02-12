@@ -1,0 +1,2 @@
+javassist=cn.xianyijun.planet.common.compiler.JavassistCompiler
+adaptive=cn.xianyijun.planet.common.compiler.AdaptiveCompiler

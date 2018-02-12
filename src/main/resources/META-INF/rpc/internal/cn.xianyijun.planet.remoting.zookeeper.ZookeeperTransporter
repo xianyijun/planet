@@ -1,0 +1,2 @@
+zkclient=cn.xianyijun.planet.remoting.zookeeper.zkclient.ZkClientZookeeperTransporter
+curator=cn.xianyijun.planet.remoting.zookeeper.curator.CuratorZookeeperTransporter

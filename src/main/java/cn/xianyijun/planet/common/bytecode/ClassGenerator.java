@@ -1,0 +1,534 @@
+package cn.xianyijun.planet.common.bytecode;
+
+import cn.xianyijun.planet.utils.ClassHelper;
+import cn.xianyijun.planet.utils.ReflectUtils;
+import javassist.CannotCompileException;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtConstructor;
+import javassist.CtField;
+import javassist.CtMethod;
+import javassist.CtNewConstructor;
+import javassist.CtNewMethod;
+import javassist.LoaderClassPath;
+import javassist.Modifier;
+import javassist.NotFoundException;
+import lombok.NoArgsConstructor;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.security.ProtectionDomain;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
+
+/**
+ * The type Class generator.
+ * @author xianyijun
+ */
+@NoArgsConstructor
+public final class ClassGenerator {
+
+    private static final AtomicLong CLASS_NAME_COUNTER = new AtomicLong(0);
+    private static final String SIMPLE_NAME_TAG = "<init>";
+    private static final Map<ClassLoader, ClassPool> POOL_MAP = new ConcurrentHashMap<>();
+    private ClassPool mPool;
+    private CtClass mCtc;
+    private String mClassName;
+    private String mSuperClass;
+    private Set<String> mInterfaces;
+    private List<String> mFields, mConstructors, mMethods;
+    private Map<String, Method> mCopyMethods;
+    private Map<String, Constructor<?>> mCopyConstructors;
+    private boolean mDefaultConstructor = false;
+
+    private ClassGenerator(ClassPool pool) {
+        mPool = pool;
+    }
+
+    /**
+     * New instance class generator.
+     *
+     * @return the class generator
+     */
+    public static ClassGenerator newInstance() {
+        return new ClassGenerator(getClassPool(Thread.currentThread().getContextClassLoader()));
+    }
+
+    /**
+     * New instance class generator.
+     *
+     * @param loader the loader
+     * @return the class generator
+     */
+    public static ClassGenerator newInstance(ClassLoader loader) {
+        return new ClassGenerator(getClassPool(loader));
+    }
+
+    /**
+     * Is dynamic class boolean.
+     *
+     * @param cl the cl
+     * @return the boolean
+     */
+    public static boolean isDynamicClass(Class<?> cl) {
+        return ClassGenerator.DC.class.isAssignableFrom(cl);
+    }
+
+    /**
+     * Gets class pool.
+     *
+     * @param loader the loader
+     * @return the class pool
+     */
+    public static ClassPool getClassPool(ClassLoader loader) {
+        if (loader == null) {
+            return ClassPool.getDefault();
+        }
+
+        ClassPool pool = POOL_MAP.get(loader);
+        if (pool == null) {
+            pool = new ClassPool(true);
+            pool.appendClassPath(new LoaderClassPath(loader));
+            POOL_MAP.put(loader, pool);
+        }
+        return pool;
+    }
+
+    private static String modifier(int mod) {
+        if (Modifier.isPublic(mod)) {
+            return "public";
+        }
+        if (Modifier.isProtected(mod)) {
+            return "protected";
+        }
+        if (Modifier.isPrivate(mod)) {
+            return "private";
+        }
+        return "";
+    }
+
+    /**
+     * Gets class name.
+     *
+     * @return the class name
+     */
+    public String getClassName() {
+        return mClassName;
+    }
+
+    /**
+     * Sets class name.
+     *
+     * @param name the name
+     * @return the class name
+     */
+    public ClassGenerator setClassName(String name) {
+        mClassName = name;
+        return this;
+    }
+
+    /**
+     * Add interface class generator.
+     *
+     * @param cn the cn
+     * @return the class generator
+     */
+    public ClassGenerator addInterface(String cn) {
+        if (mInterfaces == null) {
+            mInterfaces = new HashSet<String>();
+        }
+        mInterfaces.add(cn);
+        return this;
+    }
+
+    /**
+     * Add interface class generator.
+     *
+     * @param cl the cl
+     * @return the class generator
+     */
+    public ClassGenerator addInterface(Class<?> cl) {
+        return addInterface(cl.getName());
+    }
+
+    /**
+     * Sets super class.
+     *
+     * @param cn the cn
+     * @return the super class
+     */
+    public ClassGenerator setSuperClass(String cn) {
+        mSuperClass = cn;
+        return this;
+    }
+
+    /**
+     * Sets super class.
+     *
+     * @param cl the cl
+     * @return the super class
+     */
+    public ClassGenerator setSuperClass(Class<?> cl) {
+        mSuperClass = cl.getName();
+        return this;
+    }
+
+    /**
+     * Add field class generator.
+     *
+     * @param code the code
+     * @return the class generator
+     */
+    public ClassGenerator addField(String code) {
+        if (mFields == null) {
+            mFields = new ArrayList<String>();
+        }
+        mFields.add(code);
+        return this;
+    }
+
+    /**
+     * Add field class generator.
+     *
+     * @param name the name
+     * @param mod  the mod
+     * @param type the type
+     * @return the class generator
+     */
+    public ClassGenerator addField(String name, int mod, Class<?> type) {
+        return addField(name, mod, type, null);
+    }
+
+    /**
+     * Add field class generator.
+     *
+     * @param name the name
+     * @param mod  the mod
+     * @param type the type
+     * @param def  the def
+     * @return the class generator
+     */
+    public ClassGenerator addField(String name, int mod, Class<?> type, String def) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(modifier(mod)).append(' ').append(ReflectUtils.getName(type)).append(' ');
+        sb.append(name);
+        if (def != null && def.length() > 0) {
+            sb.append('=');
+            sb.append(def);
+        }
+        sb.append(';');
+        return addField(sb.toString());
+    }
+
+    /**
+     * Add method class generator.
+     *
+     * @param code the code
+     * @return the class generator
+     */
+    public ClassGenerator addMethod(String code) {
+        if (mMethods == null) {
+            mMethods = new ArrayList<String>();
+        }
+        mMethods.add(code);
+        return this;
+    }
+
+    /**
+     * Add method class generator.
+     *
+     * @param name the name
+     * @param mod  the mod
+     * @param rt   the rt
+     * @param pts  the pts
+     * @param body the body
+     * @return the class generator
+     */
+    public ClassGenerator addMethod(String name, int mod, Class<?> rt, Class<?>[] pts, String body) {
+        return addMethod(name, mod, rt, pts, null, body);
+    }
+
+    /**
+     * Add method class generator.
+     *
+     * @param name the name
+     * @param mod  the mod
+     * @param rt   the rt
+     * @param pts  the pts
+     * @param ets  the ets
+     * @param body the body
+     * @return the class generator
+     */
+    public ClassGenerator addMethod(String name, int mod, Class<?> rt, Class<?>[] pts, Class<?>[] ets, String body) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(modifier(mod)).append(' ').append(ReflectUtils.getName(rt)).append(' ').append(name);
+        sb.append('(');
+        for (int i = 0; i < pts.length; i++) {
+            if (i > 0) {
+                sb.append(',');
+            }
+            sb.append(ReflectUtils.getName(pts[i]));
+            sb.append(" arg").append(i);
+        }
+        sb.append(')');
+        if (ets != null && ets.length > 0) {
+            sb.append(" throws ");
+            for (int i = 0; i < ets.length; i++) {
+                if (i > 0) {
+                    sb.append(',');
+                }
+                sb.append(ReflectUtils.getName(ets[i]));
+            }
+        }
+        sb.append('{').append(body).append('}');
+        return addMethod(sb.toString());
+    }
+
+    /**
+     * Add method class generator.
+     *
+     * @param m the m
+     * @return the class generator
+     */
+    public ClassGenerator addMethod(Method m) {
+        addMethod(m.getName(), m);
+        return this;
+    }
+
+    /**
+     * Add method class generator.
+     *
+     * @param name the name
+     * @param m    the m
+     * @return the class generator
+     */
+    public ClassGenerator addMethod(String name, Method m) {
+        String desc = name + ReflectUtils.getDescWithoutMethodName(m);
+        addMethod(':' + desc);
+        if (mCopyMethods == null) {
+            mCopyMethods = new ConcurrentHashMap<String, Method>(8);
+        }
+        mCopyMethods.put(desc, m);
+        return this;
+    }
+
+    /**
+     * Add constructor class generator.
+     *
+     * @param code the code
+     * @return the class generator
+     */
+    public ClassGenerator addConstructor(String code) {
+        if (mConstructors == null) {
+            mConstructors = new LinkedList<String>();
+        }
+        mConstructors.add(code);
+        return this;
+    }
+
+    /**
+     * Add constructor class generator.
+     *
+     * @param mod  the mod
+     * @param pts  the pts
+     * @param body the body
+     * @return the class generator
+     */
+    public ClassGenerator addConstructor(int mod, Class<?>[] pts, String body) {
+        return addConstructor(mod, pts, null, body);
+    }
+
+    /**
+     * Add constructor class generator.
+     *
+     * @param mod  the mod
+     * @param pts  the pts
+     * @param ets  the ets
+     * @param body the body
+     * @return the class generator
+     */
+    public ClassGenerator addConstructor(int mod, Class<?>[] pts, Class<?>[] ets, String body) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(modifier(mod)).append(' ').append(SIMPLE_NAME_TAG);
+        sb.append('(');
+        for (int i = 0; i < pts.length; i++) {
+            if (i > 0) {
+                sb.append(',');
+            }
+            sb.append(ReflectUtils.getName(pts[i]));
+            sb.append(" arg").append(i);
+        }
+        sb.append(')');
+        if (ets != null && ets.length > 0) {
+            sb.append(" throws ");
+            for (int i = 0; i < ets.length; i++) {
+                if (i > 0) {
+                    sb.append(',');
+                }
+                sb.append(ReflectUtils.getName(ets[i]));
+            }
+        }
+        sb.append('{').append(body).append('}');
+        return addConstructor(sb.toString());
+    }
+
+    /**
+     * Add constructor class generator.
+     *
+     * @param c the c
+     * @return the class generator
+     */
+    public ClassGenerator addConstructor(Constructor<?> c) {
+        String desc = ReflectUtils.getDesc(c);
+        addConstructor(":" + desc);
+        if (mCopyConstructors == null) {
+            mCopyConstructors = new ConcurrentHashMap<>(4);
+        }
+        mCopyConstructors.put(desc, c);
+        return this;
+    }
+
+    /**
+     * Add default constructor class generator.
+     *
+     * @return the class generator
+     */
+    public ClassGenerator addDefaultConstructor() {
+        mDefaultConstructor = true;
+        return this;
+    }
+
+    /**
+     * Gets class pool.
+     *
+     * @return the class pool
+     */
+    public ClassPool getClassPool() {
+        return mPool;
+    }
+
+    /**
+     * To class class.
+     *
+     * @return the class
+     */
+    public Class<?> toClass() {
+        return toClass(ClassHelper.getClassLoader(ClassGenerator.class), getClass().getProtectionDomain());
+    }
+
+    /**
+     * To class class.
+     *
+     * @param loader the loader
+     * @param pd     the pd
+     * @return the class
+     */
+    public Class<?> toClass(ClassLoader loader, ProtectionDomain pd) {
+        if (mCtc != null) {
+            mCtc.detach();
+        }
+        long id = CLASS_NAME_COUNTER.getAndIncrement();
+        try {
+            CtClass ctcs = mSuperClass == null ? null : mPool.get(mSuperClass);
+            if (mClassName == null) {
+                mClassName = (mSuperClass == null || Modifier.isPublic(ctcs.getModifiers())
+                        ? ClassGenerator.class.getName() : mSuperClass + "$sc") + id;
+            }
+            mCtc = mPool.makeClass(mClassName);
+            if (mSuperClass != null) {
+                mCtc.setSuperclass(ctcs);
+            }
+            mCtc.addInterface(mPool.get(DC.class.getName())); // add dynamic class tag.
+            if (mInterfaces != null) {
+                for (String cl : mInterfaces) {
+                    mCtc.addInterface(mPool.get(cl));
+                }
+            }
+            if (mFields != null) {
+                for (String code : mFields) {
+                    mCtc.addField(CtField.make(code, mCtc));
+                }
+            }
+            if (mMethods != null) {
+                for (String code : mMethods) {
+                    if (code.charAt(0) == ':') {
+                        mCtc.addMethod(CtNewMethod.copy(getCtMethod(mCopyMethods.get(code.substring(1))), code.substring(1, code.indexOf('(')), mCtc, null));
+                    } else {
+                        mCtc.addMethod(CtNewMethod.make(code, mCtc));
+                    }
+                }
+            }
+            if (mDefaultConstructor) {
+                mCtc.addConstructor(CtNewConstructor.defaultConstructor(mCtc));
+            }
+            if (mConstructors != null) {
+                for (String code : mConstructors) {
+                    if (code.charAt(0) == ':') {
+                        mCtc.addConstructor(CtNewConstructor.copy(getCtConstructor(mCopyConstructors.get(code.substring(1))), mCtc, null));
+                    } else {
+                        String[] sn = mCtc.getSimpleName().split("\\$+"); // inner class name include $.
+                        mCtc.addConstructor(CtNewConstructor.make(code.replaceFirst(SIMPLE_NAME_TAG, sn[sn.length - 1]), mCtc));
+                    }
+                }
+            }
+            return mCtc.toClass(loader, pd);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (NotFoundException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        } catch (CannotCompileException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Release.
+     */
+    public void release() {
+        if (mCtc != null) {
+            mCtc.detach();
+        }
+        if (mInterfaces != null) {
+            mInterfaces.clear();
+        }
+        if (mFields != null) {
+            mFields.clear();
+        }
+        if (mMethods != null) {
+            mMethods.clear();
+        }
+        if (mConstructors != null) {
+            mConstructors.clear();
+        }
+        if (mCopyMethods != null) {
+            mCopyMethods.clear();
+        }
+        if (mCopyConstructors != null) {
+            mCopyConstructors.clear();
+        }
+    }
+
+    private CtClass getCtClass(Class<?> c) throws NotFoundException {
+        return mPool.get(c.getName());
+    }
+
+    private CtMethod getCtMethod(Method m) throws NotFoundException {
+        return getCtClass(m.getDeclaringClass()).getMethod(m.getName(), ReflectUtils.getDescWithoutMethodName(m));
+    }
+
+    private CtConstructor getCtConstructor(Constructor<?> c) throws NotFoundException {
+        return getCtClass(c.getDeclaringClass()).getConstructor(ReflectUtils.getDesc(c));
+    }
+
+    /**
+     * The interface Dc.
+     */
+    public static interface DC {
+    } // dynamic class
+}

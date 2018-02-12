@@ -1,0 +1,2 @@
+adaptive=cn.xianyijun.planet.common.extension.AdaptiveExtensionFactory
+spi=cn.xianyijun.planet.common.extension.SpiExtensionFactory
