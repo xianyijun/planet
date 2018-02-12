@@ -29,7 +29,7 @@
 .idea
 *.iml
 out
-gen### Gradle template
+### Gradle template
 .gradle
 /build/
 /target/
