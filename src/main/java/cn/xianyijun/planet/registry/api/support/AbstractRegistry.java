@@ -340,11 +340,8 @@ public abstract class AbstractRegistry implements Registry {
                         if (!file.exists()) {
                             file.createNewFile();
                         }
-                        FileOutputStream outputFile = new FileOutputStream(file);
-                        try {
-                            properties.store(outputFile, "Dubbo Registry Cache");
-                        } finally {
-                            outputFile.close();
+                        try (FileOutputStream outputFile = new FileOutputStream(file)) {
+                            properties.store(outputFile, "rpc Registry Cache");
                         }
                     } finally {
                         lock.release();

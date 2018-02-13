@@ -7,6 +7,7 @@ import cn.xianyijun.planet.common.Constants;
 import cn.xianyijun.planet.common.URL;
 import cn.xianyijun.planet.common.Version;
 import cn.xianyijun.planet.common.extension.ExtensionLoader;
+import cn.xianyijun.planet.remoting.api.Client;
 import cn.xianyijun.planet.rpc.api.Invoker;
 import cn.xianyijun.planet.rpc.api.Protocol;
 import cn.xianyijun.planet.rpc.api.StaticContext;
@@ -25,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import cn.xianyijun.planet.utils.CollectionUtils;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -76,6 +78,9 @@ public class ClientConfig<T> extends AbstractClientConfig {
 
     private transient volatile boolean destroyed;
 
+    public ClientConfig(Client client) {
+        appendAnnotation(Client.class, client);
+    }
     /**
      * Sets interface.
      *
@@ -355,4 +360,41 @@ public class ClientConfig<T> extends AbstractClientConfig {
         }
     }
 
+    protected void appendAnnotation(Class<?> annotationClass, Object annotation) {
+        Method[] methods = annotationClass.getMethods();
+        for (Method method : methods) {
+            if (method.getDeclaringClass() != Object.class
+                    && method.getReturnType() != void.class
+                    && method.getParameterTypes().length == 0
+                    && Modifier.isPublic(method.getModifiers())
+                    && !Modifier.isStatic(method.getModifiers())) {
+                try {
+                    String property = method.getName();
+                    if ("interfaceClass".equals(property) || "interfaceName".equals(property)) {
+                        property = "interface";
+                    }
+                    String setter = "set" + property.substring(0, 1).toUpperCase() + property.substring(1);
+                    Object value = method.invoke(annotation);
+                    if (value != null && !value.equals(method.getDefaultValue())) {
+                        Class<?> parameterType = ReflectUtils.getBoxedClass(method.getReturnType());
+                        if ("filter".equals(property) || "listener".equals(property)) {
+                            parameterType = String.class;
+                            value = StringUtils.join((String[]) value, ",");
+                        } else if ("parameters".equals(property)) {
+                            parameterType = Map.class;
+                            value = CollectionUtils.toStringMap((String[]) value);
+                        }
+                        try {
+                            Method setterMethod = getClass().getMethod(setter, parameterType);
+                            setterMethod.invoke(this, value);
+                        } catch (NoSuchMethodException e) {
+                            // ignore
+                        }
+                    }
+                } catch (Throwable e) {
+                    log.error(e.getMessage(), e);
+                }
+            }
+        }
+    }
 }

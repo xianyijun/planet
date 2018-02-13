@@ -101,7 +101,6 @@ public class ConfigUtils {
                 String errMsg = String.format("only 1 %s file is expected, but %d rpc.properties files found on class path: %s",
                         fileName, list.size(), list.toString());
                 log.warn(errMsg);
-                // throw new IllegalStateException(errMsg); // see http://code.alibabatech.com/jira/browse/DUBBO-133
             }
 
             // fall back to use method getResourceAsStream

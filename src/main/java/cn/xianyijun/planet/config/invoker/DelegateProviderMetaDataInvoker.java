@@ -8,7 +8,9 @@ import cn.xianyijun.planet.rpc.api.Invoker;
 import cn.xianyijun.planet.rpc.api.Result;
 
 /**
- * Created by xianyijun on 2018/1/27.
+ *
+ * @author xianyijun
+ * @date 2018/1/27
  *
  * @param <T> the type parameter
  */
