@@ -31,7 +31,7 @@ public abstract class Proxy {
     };
     private static final AtomicLong PROXY_CLASS_COUNTER = new AtomicLong(0);
     private static final String PACKAGE_NAME = Proxy.class.getPackage().getName();
-    private static final Map<ClassLoader, Map<String, Object>> ProxyCacheMap = new WeakHashMap<ClassLoader, Map<String, Object>>();
+    private static final Map<ClassLoader, Map<String, Object>> ProxyCacheMap = new WeakHashMap<>();
 
     private static final Object PENDING_GENERATION_MARKER = new Object();
 
@@ -64,20 +64,20 @@ public abstract class Proxy {
         }
 
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < ics.length; i++) {
-            String itf = ics[i].getName();
-            if (!ics[i].isInterface()) {
+        for (Class<?> ic1 : ics) {
+            String itf = ic1.getName();
+            if (!ic1.isInterface()) {
                 throw new RuntimeException(itf + " is not a interface.");
             }
 
             Class<?> tmp = null;
             try {
                 tmp = Class.forName(itf, false, cl);
-            } catch (ClassNotFoundException e) {
+            } catch (ClassNotFoundException ignored) {
             }
 
-            if (tmp != ics[i]) {
-                throw new IllegalArgumentException(ics[i] + " is not visible from class loader");
+            if (tmp != ic1) {
+                throw new IllegalArgumentException(ic1 + " is not visible from class loader");
             }
 
             sb.append(itf).append(';');
@@ -89,11 +89,7 @@ public abstract class Proxy {
         // get cache by class loader.
         Map<String, Object> cache;
         synchronized (ProxyCacheMap) {
-            cache = ProxyCacheMap.get(cl);
-            if (cache == null) {
-                cache = new HashMap<String, Object>();
-                ProxyCacheMap.put(cl, cache);
-            }
+            cache = ProxyCacheMap.computeIfAbsent(cl, k -> new HashMap<>());
         }
 
         Proxy proxy = null;
@@ -110,7 +106,7 @@ public abstract class Proxy {
                 if (value == PENDING_GENERATION_MARKER) {
                     try {
                         cache.wait();
-                    } catch (InterruptedException e) {
+                    } catch (InterruptedException ignored) {
                     }
                 } else {
                     cache.put(key, PENDING_GENERATION_MARKER);
@@ -126,8 +122,8 @@ public abstract class Proxy {
         try {
             ccp = ClassGenerator.newInstance(cl);
 
-            Set<String> worked = new HashSet<String>();
-            List<Method> methods = new ArrayList<Method>();
+            Set<String> worked = new HashSet<>();
+            List<Method> methods = new ArrayList<>();
 
             for (Class<?> ic : ics) {
                 if (!Modifier.isPublic(ic.getModifiers())) {
@@ -171,7 +167,6 @@ public abstract class Proxy {
                 pkg = PACKAGE_NAME;
             }
 
-            // create ProxyInstance class.
             String pcn = pkg + ".proxy" + id;
             ccp.setClassName(pcn);
             ccp.addField("public static java.lang.reflect.Method[] methods;");
@@ -195,7 +190,6 @@ public abstract class Proxy {
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
         } finally {
-            // release ClassGenerator
             if (ccp != null) {
                 ccp.release();
             }

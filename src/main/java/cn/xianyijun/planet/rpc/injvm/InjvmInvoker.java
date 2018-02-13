@@ -12,7 +12,9 @@ import cn.xianyijun.planet.utils.NetUtils;
 import java.util.Map;
 
 /**
- * Created by xianyijun on 2018/1/21.
+ *
+ * @author xianyijun
+ * @date 2018/1/21
  *
  * @param <T> the type parameter
  */
@@ -39,11 +41,7 @@ public class InjvmInvoker<T> extends AbstractInvoker {
     @Override
     public boolean isAvailable() {
         InjvmExporter<?> exporter = (InjvmExporter<?>) exporterMap.get(key);
-        if (exporter == null) {
-            return false;
-        } else {
-            return super.isAvailable();
-        }
+        return exporter != null && super.isAvailable();
     }
 
     @Override

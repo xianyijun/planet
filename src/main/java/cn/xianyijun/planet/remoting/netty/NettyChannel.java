@@ -1,4 +1,4 @@
-package cn.xianyijun.planet.remoting.api.transport.netty;
+package cn.xianyijun.planet.remoting.netty;
 
 
 import cn.xianyijun.planet.common.Constants;

@@ -1,1 +1,1 @@
-netty=cn.xianyijun.planet.remoting.api.transport.netty.NettyTransporter
+netty=cn.xianyijun.planet.remoting.netty.NettyTransporter

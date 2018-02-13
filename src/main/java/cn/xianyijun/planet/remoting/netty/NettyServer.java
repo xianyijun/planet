@@ -1,4 +1,4 @@
-package cn.xianyijun.planet.remoting.api.transport.netty;
+package cn.xianyijun.planet.remoting.netty;
 
 
 import cn.xianyijun.planet.common.Constants;
@@ -101,7 +101,7 @@ public class NettyServer extends AbstractServer implements Server {
         try{
             Collection<Channel> channels = getChannels();
             if (channels != null && channels.isEmpty()){
-                channels.stream().forEach(Channel::close);
+                channels.forEach(Channel::close);
             }
         }catch (Throwable e){
             log.warn(e.getMessage(), e);

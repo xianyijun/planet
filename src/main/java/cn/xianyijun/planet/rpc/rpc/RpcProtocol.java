@@ -298,16 +298,13 @@ public class RpcProtocol extends AbstractProtocol {
      * @throws RemotingException the remoting exception
      */
     public Invoker<?> getInvoker(Channel channel, Invocation inv) throws RemotingException {
-
-        boolean isCallBackServiceInvoke = false;
-        boolean isStubServiceInvoke = false;
         int port = channel.getLocalAddress().getPort();
         String path = inv.getAttachments().get(Constants.PATH_KEY);
-        isStubServiceInvoke = Boolean.TRUE.toString().equals(inv.getAttachments().get(Constants.STUB_EVENT_KEY));
+        boolean isStubServiceInvoke = Boolean.TRUE.toString().equals(inv.getAttachments().get(Constants.STUB_EVENT_KEY));
         if (isStubServiceInvoke) {
             port = channel.getRemoteAddress().getPort();
         }
-        isCallBackServiceInvoke = isClientSide(channel) && !isStubServiceInvoke;
+        boolean isCallBackServiceInvoke = isClientSide(channel) && !isStubServiceInvoke;
         if (isCallBackServiceInvoke) {
             path = inv.getAttachments().get(Constants.PATH_KEY) + "." + inv.getAttachments().get(Constants.CALLBACK_SERVICE_KEY);
             inv.getAttachments().put(IS_CALLBACK_SERVICE_INVOKE, Boolean.TRUE.toString());
@@ -333,7 +330,7 @@ public class RpcProtocol extends AbstractProtocol {
 
     public static RpcProtocol getRpcProtocol() {
         if (INSTANCE == null) {
-            ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(RpcProtocol.NAME); // load
+            ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(RpcProtocol.NAME);
         }
         return INSTANCE;
     }

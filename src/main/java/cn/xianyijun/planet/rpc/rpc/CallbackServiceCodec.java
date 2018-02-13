@@ -84,20 +84,19 @@ public class CallbackServiceCodec {
     }
 
     private static Object referOrDestroyCallbackService(Channel channel, URL url, Class<?> clazz, RpcInvocation inv, int instId, boolean isRefer) {
-        Object proxy = null;
 
         String invokerCacheKey = getServerSideCallbackInvokerCacheKey(channel , clazz.getName(), instId);
 
         String proxyCacheKey = getServerSideCallbackServiceCacheKey(channel, clazz.getName(), instId);
 
-        proxy = channel.getAttribute(proxyCacheKey);
+        Object proxy = channel.getAttribute(proxyCacheKey);
         String countKey = getServerSideCountKey(channel, clazz.getName());
 
         if (isRefer){
             if (proxy == null) {
                 URL referUrl = URL.valueOf("callback://" + url.getAddress() + "/" + clazz.getName() + "?" + Constants.INTERFACE_KEY + "=" + clazz.getName());
                 referUrl = referUrl.addParametersIfAbsent(url.getParameters()).removeParameter(Constants.METHODS_KEY);
-                if (!isInstancesOverLimit(channel, referUrl, clazz.getName(), instId, true)) {
+                if (isInstancesOverLimit(channel, referUrl, clazz.getName(), instId, true)) {
                     @SuppressWarnings("rawtypes")
                     Invoker<?> invoker = new ChannelWrappedInvoker(clazz, channel, referUrl, String.valueOf(instId));
                     proxy = PROXY_FACTORY.getProxy(invoker);
@@ -157,7 +156,7 @@ public class CallbackServiceCodec {
         String countKey = getClientSideCountKey(clazz.getName());
         if (export) {
             if (!channel.hasAttribute(cacheKey)) {
-                if (!isInstancesOverLimit(channel, url, clazz.getName(), instId, false)) {
+                if (isInstancesOverLimit(channel, url, clazz.getName(), instId, false)) {
                     Invoker<?> invoker = PROXY_FACTORY.getInvoker(inst, clazz, exportUrl);
                     Exporter<?> exporter = PROTOCOL.export(invoker);
                     channel.setAttribute(cacheKey, exporter);
@@ -212,7 +211,7 @@ public class CallbackServiceCodec {
             throw new IllegalStateException("interface " + interfaceClass + " `s callback instances num exceed providers limit :" + limit
                     + " ,current num: " + (count + 1) + ". The new callback service will not work !!! you can cancle the callback service which exported before. channel :" + channel);
         } else {
-            return false;
+            return true;
         }
     }
 

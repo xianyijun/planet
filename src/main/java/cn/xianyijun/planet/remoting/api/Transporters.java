@@ -4,7 +4,7 @@ import cn.xianyijun.planet.common.URL;
 import cn.xianyijun.planet.exception.RemotingException;
 import cn.xianyijun.planet.remoting.api.transport.ChannelHandlerAdapter;
 import cn.xianyijun.planet.remoting.api.transport.ChannelHandlerDispatcher;
-import cn.xianyijun.planet.remoting.api.transport.netty.NettyTransporter;
+import cn.xianyijun.planet.remoting.netty.NettyTransporter;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

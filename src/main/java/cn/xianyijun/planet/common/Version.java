@@ -1,5 +1,6 @@
 package cn.xianyijun.planet.common;
 
+import cn.xianyijun.planet.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.security.CodeSource;
@@ -63,10 +64,8 @@ public final class Version {
                     }
                 }
             }
-            // 返回版本号，如果为空返回缺省版本号
-            return version == null || version.length() == 0 ? defaultVersion : version;
-        } catch (Throwable e) { // 防御性容错
-            // 忽略异常，返回缺省版本号
+            return StringUtils.isBlank(version) ? defaultVersion : version;
+        } catch (Throwable e) {
             log.error("return default version, ignore exception " + e.getMessage(), e);
             return defaultVersion;
         }
