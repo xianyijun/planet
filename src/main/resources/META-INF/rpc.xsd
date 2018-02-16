@@ -690,7 +690,7 @@
         <xsd:complexContent>
             <xsd:extension base="abstractReferenceType">
                 <xsd:sequence minOccurs="0" maxOccurs="unbounded">
-                    <xsd:element ref="reference" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element ref="client" minOccurs="0" maxOccurs="unbounded"/>
                     <xsd:element ref="parameter" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
                 <xsd:attribute name="default" type="xsd:string">
@@ -708,7 +708,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="referenceType">
+    <xsd:complexType name="clientType">
         <xsd:complexContent>
             <xsd:extension base="abstractReferenceType">
                 <xsd:choice minOccurs="0" maxOccurs="unbounded">
@@ -1178,7 +1178,7 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:element name="reference" type="referenceType">
+    <xsd:element name="client" type="clientType">
         <xsd:annotation>
             <xsd:documentation><![CDATA[ Reference service config ]]></xsd:documentation>
         </xsd:annotation>

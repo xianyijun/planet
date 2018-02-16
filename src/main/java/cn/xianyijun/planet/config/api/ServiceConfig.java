@@ -6,6 +6,7 @@ import cn.xianyijun.planet.common.URL;
 import cn.xianyijun.planet.common.Version;
 import cn.xianyijun.planet.common.bytecode.Wrapper;
 import cn.xianyijun.planet.common.extension.ExtensionLoader;
+import cn.xianyijun.planet.config.annotation.RpcService;
 import cn.xianyijun.planet.config.invoker.DelegateProviderMetaDataInvoker;
 import cn.xianyijun.planet.rpc.api.Exporter;
 import cn.xianyijun.planet.rpc.api.Invoker;
@@ -17,9 +18,10 @@ import cn.xianyijun.planet.utils.ConfigUtils;
 import cn.xianyijun.planet.utils.NamedThreadFactory;
 import cn.xianyijun.planet.utils.NetUtils;
 import cn.xianyijun.planet.utils.StringUtils;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 
@@ -48,7 +50,8 @@ import java.util.concurrent.TimeUnit;
  * @author xianyijun
  */
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
 @Slf4j
 @EqualsAndHashCode(callSuper=false)
 public class ServiceConfig<T> extends AbstractServiceConfig {
@@ -66,11 +69,15 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     private final List<Exporter<?>> exporters = new ArrayList<>();
 
     private String interfaceName;
+
     private Class<?> interfaceClass;
 
     private T ref;
+
     private String path;
+
     private List<MethodConfig> methods;
+
     private ProviderConfig provider;
 
     private transient volatile boolean exported;
@@ -78,6 +85,10 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     private transient volatile boolean unExported;
 
     private volatile String generic;
+
+    public ServiceConfig(RpcService service) {
+        appendAnnotation(RpcService.class, service);
+    }
 
     /**
      * Export.
@@ -112,7 +123,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         }
         exported = true;
 
-        if (interfaceName == null || interfaceName.isEmpty()){
+        if (StringUtils.isBlank(interfaceName)){
             throw new IllegalArgumentException("the interface name can not be null");
         }
         checkDefault();
@@ -492,9 +503,18 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
      */
     public void setInterface(String interfaceName) {
         this.interfaceName = interfaceName;
-        if (id == null || id.length() == 0) {
+        if (StringUtils.isBlank(id)) {
             id = interfaceName;
         }
+    }
+
+
+    public String getInterface() {
+        return interfaceName;
+    }
+
+    protected Class getServiceClass(T ref) {
+        return ref.getClass();
     }
 
     private void checkProtocol() {
@@ -539,5 +559,4 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         }
         return port;
     }
-
 }

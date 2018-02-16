@@ -15,6 +15,7 @@ import cn.xianyijun.planet.rpc.api.proxy.ProxyFactory;
 import cn.xianyijun.planet.rpc.injvm.InJVMProtocol;
 import cn.xianyijun.planet.utils.ArrayUtils;
 import cn.xianyijun.planet.utils.ClusterUtils;
+import cn.xianyijun.planet.utils.CollectionUtils;
 import cn.xianyijun.planet.utils.ConfigUtils;
 import cn.xianyijun.planet.utils.NetUtils;
 import cn.xianyijun.planet.utils.ReflectUtils;
@@ -22,11 +23,10 @@ import cn.xianyijun.planet.utils.StringUtils;
 import com.alibaba.fastjson.JSON;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import cn.xianyijun.planet.utils.CollectionUtils;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,6 +44,7 @@ import static cn.xianyijun.planet.utils.NetUtils.isInvalidLocalHost;
 @Data
 @Slf4j
 @EqualsAndHashCode(callSuper=false)
+@NoArgsConstructor
 public class ClientConfig<T> extends AbstractClientConfig {
 
     private final List<URL> urlList = new ArrayList<>();
@@ -104,6 +105,10 @@ public class ClientConfig<T> extends AbstractClientConfig {
         if (id == null || id.length() == 0) {
             id = interfaceName;
         }
+    }
+
+    public String getInterface() {
+        return interfaceName;
     }
 
     /**
@@ -357,44 +362,6 @@ public class ClientConfig<T> extends AbstractClientConfig {
             return ReflectUtils.findMethodByMethodName(clazz, methodName);
         } catch (Exception e) {
             throw new IllegalStateException(e);
-        }
-    }
-
-    protected void appendAnnotation(Class<?> annotationClass, Object annotation) {
-        Method[] methods = annotationClass.getMethods();
-        for (Method method : methods) {
-            if (method.getDeclaringClass() != Object.class
-                    && method.getReturnType() != void.class
-                    && method.getParameterTypes().length == 0
-                    && Modifier.isPublic(method.getModifiers())
-                    && !Modifier.isStatic(method.getModifiers())) {
-                try {
-                    String property = method.getName();
-                    if ("interfaceClass".equals(property) || "interfaceName".equals(property)) {
-                        property = "interface";
-                    }
-                    String setter = "set" + property.substring(0, 1).toUpperCase() + property.substring(1);
-                    Object value = method.invoke(annotation);
-                    if (value != null && !value.equals(method.getDefaultValue())) {
-                        Class<?> parameterType = ReflectUtils.getBoxedClass(method.getReturnType());
-                        if ("filter".equals(property) || "listener".equals(property)) {
-                            parameterType = String.class;
-                            value = StringUtils.join((String[]) value, ",");
-                        } else if ("parameters".equals(property)) {
-                            parameterType = Map.class;
-                            value = CollectionUtils.toStringMap((String[]) value);
-                        }
-                        try {
-                            Method setterMethod = getClass().getMethod(setter, parameterType);
-                            setterMethod.invoke(this, value);
-                        } catch (NoSuchMethodException e) {
-                            // ignore
-                        }
-                    }
-                } catch (Throwable e) {
-                    log.error(e.getMessage(), e);
-                }
-            }
         }
     }
 }

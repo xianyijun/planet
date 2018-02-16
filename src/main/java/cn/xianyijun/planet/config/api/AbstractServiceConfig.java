@@ -60,9 +60,6 @@ public class AbstractServiceConfig extends AbstractInterfaceConfig {
      */
     protected String token;
 
-    /**
-     * The Accesslog.
-     */
     protected String accesslog;
 
     private Integer callbacks;

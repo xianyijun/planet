@@ -49,6 +49,7 @@ public class RpcBeanDefinitionParser implements BeanDefinitionParser{
 
     @Override
     public BeanDefinition parse(Element element, ParserContext parserContext) {
+        log.info("[parse] start parse element, element: {} , beanClass:{} required :{}", element, beanClass ,required);
         return parse(element, parserContext, beanClass, required);
     }
 
@@ -109,11 +110,12 @@ public class RpcBeanDefinitionParser implements BeanDefinitionParser{
         } else if (ConsumerConfig.class.equals(beanClass)) {
             parseNested(element, parserContext, ClientBean.class, false, "reference", "consumer", id, beanDefinition);
         }
+
         Set<String> props = new HashSet<>();
         ManagedMap<String, TypedStringValue> parameters = null;
-
         for (Method setter : beanClass.getMethods()){
             String name = setter.getName();
+            log.info("[RpcBeanDefinitionParser] parse, beanClass:{}  , method: {}",beanClass, name);
             if (name.length() > 3 && name.startsWith("set")
                     && Modifier.isPublic(setter.getModifiers())
                     && setter.getParameterTypes().length == 1) {
@@ -158,14 +160,6 @@ public class RpcBeanDefinitionParser implements BeanDefinitionParser{
                             } else {
                                 Object reference;
                                 if (isPrimitive(type)) {
-                                    if ("async".equals(property) && "false".equals(value)
-                                            || "timeout".equals(property) && "0".equals(value)
-                                            || "delay".equals(property) && "0".equals(value)
-                                            || "version".equals(property) && "0.0.0".equals(value)
-                                            || "stat".equals(property) && "-1".equals(value)
-                                            || "reliable".equals(property) && "false".equals(value)) {
-                                        value = null;
-                                    }
                                     reference = value;
                                 } else if (Constants.PROTOCOL_KEY.equals(property)
                                         && ExtensionLoader.getExtensionLoader(Protocol.class).hasExtension(value)

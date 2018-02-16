@@ -103,7 +103,6 @@ public class ConfigUtils {
                 log.warn(errMsg);
             }
 
-            // fall back to use method getResourceAsStream
             try {
                 properties.load(ClassHelper.getClassLoader().getResourceAsStream(fileName));
             } catch (Throwable e) {

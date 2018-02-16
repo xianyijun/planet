@@ -13,6 +13,9 @@ import org.w3c.dom.Element;
 import static org.springframework.util.StringUtils.commaDelimitedListToStringArray;
 import static org.springframework.util.StringUtils.trimArrayElements;
 
+/**
+ * @author xianyijun
+ */
 public class AnnotationBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 
     @Override

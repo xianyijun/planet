@@ -1,12 +1,13 @@
 package cn.xianyijun.planet.config.api;
 
+import cn.xianyijun.planet.utils.CollectionUtils;
 import cn.xianyijun.planet.utils.ConfigUtils;
+import cn.xianyijun.planet.utils.ReflectUtils;
 import cn.xianyijun.planet.utils.StringUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
@@ -16,12 +17,13 @@ import java.util.Map;
 
 /**
  * The type Abstract config.
+ * @author xianyijun
  */
 @Data
 @ToString
 @EqualsAndHashCode
+@Slf4j
 public abstract class AbstractConfig implements Serializable {
-    private static final Logger logger = LoggerFactory.getLogger(AbstractConfig.class);
 
     private static final Map<String, String> legacyProperties = new HashMap<String, String>();
     private static final String[] SUFFIXS = new String[]{"Config", "Bean"};
@@ -50,7 +52,7 @@ public abstract class AbstractConfig implements Serializable {
             try {
                 String name = method.getName();
                 if (name.length() > 3 && name.startsWith("set") && Modifier.isPublic(method.getModifiers())
-                        && method.getParameterTypes().length == 1 && isPrimitive(method.getParameterTypes()[0])) {
+                        && method.getParameterTypes().length == 1 && ReflectUtils.isPrimitive(method.getParameterTypes()[0])) {
                     String property = StringUtils.camelToSplitName(name.substring(3, 4).toLowerCase() + name.substring(4), "-");
 
                     String value = null;
@@ -58,29 +60,29 @@ public abstract class AbstractConfig implements Serializable {
                         String pn = prefix + config.getId() + "." + property;
                         value = System.getProperty(pn);
                         if (!StringUtils.isBlank(value)) {
-                            logger.info("Use System Property " + pn + " to config rpc");
+                            log.info("Use System Property " + pn + " to config rpc");
                         }
                     }
                     if (value == null || value.length() == 0) {
                         String pn = prefix + property;
                         value = System.getProperty(pn);
                         if (!StringUtils.isBlank(value)) {
-                            logger.info("Use System Property " + pn + " to config rpc");
+                            log.info("Use System Property " + pn + " to config rpc");
                         }
                     }
                     if (value == null || value.length() == 0) {
                         Method getter;
                         try {
-                            getter = config.getClass().getMethod("get" + name.substring(3), new Class<?>[0]);
+                            getter = config.getClass().getMethod("get" + name.substring(3));
                         } catch (NoSuchMethodException e) {
                             try {
-                                getter = config.getClass().getMethod("is" + name.substring(3), new Class<?>[0]);
+                                getter = config.getClass().getMethod("is" + name.substring(3));
                             } catch (NoSuchMethodException e2) {
                                 getter = null;
                             }
                         }
                         if (getter != null) {
-                            if (getter.invoke(config, new Object[0]) == null) {
+                            if (getter.invoke(config) == null) {
                                 if (config.getId() != null && config.getId().length() > 0) {
                                     value = ConfigUtils.getProperty(prefix + config.getId() + "." + property);
                                 }
@@ -102,7 +104,7 @@ public abstract class AbstractConfig implements Serializable {
                     }
                 }
             } catch (Exception e) {
-                logger.error(e.getMessage(), e);
+                log.error(e.getMessage(), e);
             }
         }
     }
@@ -119,21 +121,6 @@ public abstract class AbstractConfig implements Serializable {
         tag = tag.toLowerCase();
         return tag;
     }
-
-    private static boolean isPrimitive(Class<?> type) {
-        return type.isPrimitive()
-                || type == String.class
-                || type == Character.class
-                || type == Boolean.class
-                || type == Byte.class
-                || type == Short.class
-                || type == Integer.class
-                || type == Long.class
-                || type == Float.class
-                || type == Double.class
-                || type == Object.class;
-    }
-
 
     private static String convertLegacyValue(String key, String value) {
         if (value != null && value.length() > 0) {
@@ -198,14 +185,14 @@ public abstract class AbstractConfig implements Serializable {
                         && !"getClass".equals(name)
                         && Modifier.isPublic(method.getModifiers())
                         && method.getParameterTypes().length == 0
-                        && isPrimitive(method.getReturnType())) {
+                        && ReflectUtils.isPrimitive(method.getReturnType())) {
 
                     if (method.getReturnType() == Object.class) {
                         continue;
                     }
                     int i = name.startsWith("get") ? 3 : 2;
                     String key = StringUtils.camelToSplitName(name.substring(i, i + 1).toLowerCase() + name.substring(i + 1), ".");
-                    Object value = method.invoke(config, new Object[0]);
+                    Object value = method.invoke(config);
                     String str = String.valueOf(value).trim();
                     if (value != null && str.length() > 0) {
                         if (prefix != null && prefix.length() > 0) {
@@ -260,12 +247,12 @@ public abstract class AbstractConfig implements Serializable {
                         && !"getClass".equals(name)
                         && Modifier.isPublic(method.getModifiers())
                         && method.getParameterTypes().length == 0
-                        && isPrimitive(method.getReturnType())) {
+                        && ReflectUtils.isPrimitive(method.getReturnType())) {
                     String key;
                     int i = name.startsWith("get") ? 3 : 2;
                     key = name.substring(i, i + 1).toLowerCase() + name.substring(i + 1);
 
-                    Object value = method.invoke(config, new Object[0]);
+                    Object value = method.invoke(config);
                     if (value != null) {
                         if (prefix != null && prefix.length() > 0) {
                             key = prefix + "." + key;
@@ -279,4 +266,41 @@ public abstract class AbstractConfig implements Serializable {
         }
     }
 
+    protected void appendAnnotation(Class<?> annotationClass, Object annotation) {
+        Method[] methods = annotationClass.getMethods();
+        for (Method method : methods) {
+            if (method.getDeclaringClass() != Object.class
+                    && method.getReturnType() != void.class
+                    && method.getParameterTypes().length == 0
+                    && Modifier.isPublic(method.getModifiers())
+                    && !Modifier.isStatic(method.getModifiers())) {
+                try {
+                    String property = method.getName();
+                    if ("interfaceClass".equals(property) || "interfaceName".equals(property)) {
+                        property = "interface";
+                    }
+                    String setter = "set" + property.substring(0, 1).toUpperCase() + property.substring(1);
+                    Object value = method.invoke(annotation);
+                    if (value != null && !value.equals(method.getDefaultValue())) {
+                        Class<?> parameterType = ReflectUtils.getBoxedClass(method.getReturnType());
+                        if ("filter".equals(property) || "listener".equals(property)) {
+                            parameterType = String.class;
+                            value = StringUtils.join((String[]) value, ",");
+                        } else if ("parameters".equals(property)) {
+                            parameterType = Map.class;
+                            value = CollectionUtils.toStringMap((String[]) value);
+                        }
+                        try {
+                            Method setterMethod = getClass().getMethod(setter, parameterType);
+                            setterMethod.invoke(this, value);
+                        } catch (NoSuchMethodException e) {
+                            // ignore
+                        }
+                    }
+                } catch (Throwable e) {
+                    log.error(e.getMessage(), e);
+                }
+            }
+        }
+    }
 }
