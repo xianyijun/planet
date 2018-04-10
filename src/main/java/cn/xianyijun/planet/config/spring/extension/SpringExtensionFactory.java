@@ -1,11 +1,15 @@
 package cn.xianyijun.planet.config.spring.extension;
 
-import cn.xianyijun.planet.common.extension.ExtensionFactory;
-import cn.xianyijun.planet.utils.ConcurrentHashSet;
 import org.springframework.context.ApplicationContext;
 
 import java.util.Set;
 
+import cn.xianyijun.planet.common.extension.ExtensionFactory;
+import cn.xianyijun.planet.utils.ConcurrentHashSet;
+
+/**
+ * @author xianyijun
+ */
 public class SpringExtensionFactory implements ExtensionFactory {
     private static final Set<ApplicationContext> CONTEXTS = new ConcurrentHashSet<ApplicationContext>();
 
