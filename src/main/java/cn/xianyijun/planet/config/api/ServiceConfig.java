@@ -1,5 +1,24 @@
 package cn.xianyijun.planet.config.api;
 
+import org.springframework.util.CollectionUtils;
+
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import cn.xianyijun.planet.cluster.api.ConfiguratorFactory;
 import cn.xianyijun.planet.common.Constants;
 import cn.xianyijun.planet.common.URL;
@@ -23,24 +42,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.CollectionUtils;
-
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -53,7 +54,7 @@ import java.util.concurrent.TimeUnit;
 @Getter
 @Setter
 @Slf4j
-@EqualsAndHashCode(callSuper=false)
+@EqualsAndHashCode(callSuper = false)
 public class ServiceConfig<T> extends AbstractServiceConfig {
 
     private static final Protocol PROTOCOL = ExtensionLoader.getExtensionLoader(Protocol.class).getAdaptiveExtension();
@@ -114,29 +115,29 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     }
 
     private void doExport() {
-        if (unExported){
+        if (unExported) {
             throw new IllegalArgumentException(String.format("the service %s is already unExported", interfaceClass));
         }
 
-        if (exported){
+        if (exported) {
             return;
         }
         exported = true;
 
-        if (StringUtils.isBlank(interfaceName)){
+        if (StringUtils.isBlank(interfaceName)) {
             throw new IllegalArgumentException("the interface name can not be null");
         }
         checkDefault();
 
-        if (provider != null){
-            if (application == null){
+        if (provider != null) {
+            if (application == null) {
                 application = provider.getApplication();
             }
-            if (registries == null){
+            if (registries == null) {
                 registries = provider.getRegistries();
             }
 
-            if (protocols == null){
+            if (protocols == null) {
                 protocols = provider.getProtocols();
             }
         }
@@ -203,7 +204,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     private void doExportUrlsForProtocol(ProtocolConfig protocolConfig, List<URL> registryURLs) {
         log.info(String.format("[doExportUrlsForProtocol] start export, protocolConfig : %s , registryUrl: %s", protocolConfig, registryURLs));
         String name = protocolConfig.getName();
-        if (StringUtils.isBlank(name)){
+        if (StringUtils.isBlank(name)) {
             name = "rpc";
         }
 
@@ -222,32 +223,32 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         appendParameters(map, protocolConfig);
         appendParameters(map, this);
 
-        if (methods != null && !methods.isEmpty()){
+        if (methods != null && !methods.isEmpty()) {
             methods.stream().filter(Objects::nonNull).forEach(method -> {
-                appendParameters(map, method ,method.getName());
+                appendParameters(map, method, method.getName());
                 String retryKey = method.getName() + ".retry";
                 log.info(String.format("[doExportUrlsForProtocol] method retry : %s", retryKey));
-                if (map.containsKey(retryKey)){
+                if (map.containsKey(retryKey)) {
                     String retryValue = map.remove(retryKey);
-                    if (!Boolean.valueOf(retryValue)){
-                        map.put(method.getName() +".retries","0");
+                    if (!Boolean.valueOf(retryValue)) {
+                        map.put(method.getName() + ".retries", "0");
                     }
                 }
             });
         }
 
         String revision = Version.getVersion(interfaceClass, version);
-        if (!StringUtils.isBlank(revision)){
-            map.put("revision",revision);
+        if (!StringUtils.isBlank(revision)) {
+            map.put("revision", revision);
         }
         String[] methods = Wrapper.getWrapper(interfaceClass).getMethodNames();
-        if (methods.length == 0){
-            map.put("methods",Constants.ANY_VALUE);
-        }else {
+        if (methods.length == 0) {
+            map.put("methods", Constants.ANY_VALUE);
+        } else {
             map.put("methods", StringUtils.join(new HashSet<>(Arrays.asList(methods)), ","));
         }
 
-        if (ConfigUtils.isEmpty(token)){
+        if (ConfigUtils.isEmpty(token)) {
             if (ConfigUtils.isDefault(token)) {
                 map.put("token", UUID.randomUUID().toString());
             } else {
@@ -261,11 +262,11 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         }
 
         String contextPath = protocolConfig.getContextPath();
-        if (StringUtils.isBlank(contextPath) && provider != null){
+        if (StringUtils.isBlank(contextPath) && provider != null) {
             contextPath = provider.getContextPath();
         }
         String host = this.findConfiguredHosts(protocolConfig, registryURLs, map);
-        Integer port = this.findConfigeduredPorts(protocolConfig, name, map);
+        Integer port = this.findConfiguredPorts(protocolConfig, name, map);
 
         URL url = new URL(name, host, port, (contextPath == null || contextPath.length() == 0 ? "" : contextPath + "/") + path, map);
         log.info(String.format("[doExportUrlsForProtocol] url : %s", url));
@@ -312,14 +313,14 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         this.urls.add(url);
     }
 
-    private Integer findConfigeduredPorts(ProtocolConfig protocolConfig, String name, Map<String, String> map) {
+    private Integer findConfiguredPorts(ProtocolConfig protocolConfig, String name, Map<String, String> map) {
         Integer portToBind = null;
 
         // 解析环境变量配置的bind port
         String port = ConfigUtils.getSystemProperty(Constants.RPC_PORT_TO_BIND);
         portToBind = parsePort(port);
 
-        if (portToBind == null){
+        if (portToBind == null) {
             portToBind = protocolConfig.getPort();
 
             if (provider != null && (portToBind == null || portToBind == 0)) {
@@ -327,10 +328,10 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
             }
             int defaultPort = new RpcProtocol().getDefaultPort();
 
-            if (portToBind == null || portToBind == 0){
+            if (portToBind == null || portToBind == 0) {
                 portToBind = defaultPort;
             }
-            if (portToBind == null || portToBind == 0){
+            if (portToBind == null || portToBind == 0) {
                 portToBind = getRandomPort(name);
                 if (portToBind == null || portToBind < 0) {
                     portToBind = NetUtils.getAvailablePort(defaultPort);
@@ -354,47 +355,47 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
         String host = ConfigUtils.getSystemProperty(Constants.RPC_IP_TO_BIND);
 
-        if (!StringUtils.isBlank(host) && NetUtils.isInvalidLocalHost(host)){
+        if (!StringUtils.isBlank(host) && NetUtils.isInvalidLocalHost(host)) {
             throw new IllegalArgumentException(String.format("the System property : %s values is invalid, the values: %s", Constants.RPC_IP_TO_BIND, host));
         }
 
-        if (StringUtils.isBlank(host)){
+        if (StringUtils.isBlank(host)) {
             host = protocolConfig.getHost();
 
-            if (provider != null && StringUtils.isBlank(host)){
+            if (provider != null && StringUtils.isBlank(host)) {
                 host = provider.getHost();
             }
 
-            if (NetUtils.isInvalidLocalHost(host)){
+            if (NetUtils.isInvalidLocalHost(host)) {
                 anyHost = true;
                 try {
                     host = InetAddress.getLocalHost().getHostAddress();
                 } catch (UnknownHostException e) {
                     log.warn(e.getMessage(), e);
                 }
-                if(NetUtils.isInvalidLocalHost(host)){
-                    if (registryURLs != null && !registryURLs.isEmpty()){
-                        for (URL url : registryURLs){
-                            try{
+                if (NetUtils.isInvalidLocalHost(host)) {
+                    if (registryURLs != null && !registryURLs.isEmpty()) {
+                        for (URL url : registryURLs) {
+                            try {
                                 Socket socket = new Socket();
-                                try{
+                                try {
                                     SocketAddress addr = new InetSocketAddress(url.getHost(), url.getPort());
                                     socket.connect(addr, 1000);
                                     host = socket.getLocalAddress().getHostAddress();
                                     break;
-                                }finally {
+                                } finally {
                                     try {
                                         socket.close();
-                                    }catch (Throwable e){
+                                    } catch (Throwable e) {
 
                                     }
                                 }
-                            }catch (Exception e){
+                            } catch (Exception e) {
                                 log.warn(e.getMessage(), e);
                             }
                         }
                     }
-                    if (NetUtils.isInvalidLocalHost(host)){
+                    if (NetUtils.isInvalidLocalHost(host)) {
                         host = NetUtils.getLocalHost();
                     }
                 }
@@ -404,11 +405,11 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
         String hostToRegistry = ConfigUtils.getSystemProperty(Constants.RPC_IP_TO_REGISTRY);
 
-        if (!StringUtils.isBlank(hostToRegistry) && NetUtils.isInvalidLocalHost(hostToRegistry)){
+        if (!StringUtils.isBlank(hostToRegistry) && NetUtils.isInvalidLocalHost(hostToRegistry)) {
             throw new IllegalArgumentException(String.format("the System property : %s values is invalid, the values: %s", Constants.RPC_IP_TO_REGISTRY, hostToRegistry));
         }
 
-        if (StringUtils.isBlank(hostToRegistry)){
+        if (StringUtils.isBlank(hostToRegistry)) {
             hostToRegistry = host;
         }
         map.put(Constants.ANY_HOST_KEY, String.valueOf(anyHost));
@@ -531,7 +532,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
     private Integer getRandomPort(String protocol) {
         protocol = protocol.trim();
-        if (RANDOM_PORT_MAP.containsKey(protocol)){
+        if (RANDOM_PORT_MAP.containsKey(protocol)) {
             return RANDOM_PORT_MAP.get(protocol);
         }
         return Integer.MAX_VALUE;

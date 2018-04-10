@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * The type Abstract interface config.
@@ -172,45 +173,45 @@ public class AbstractInterfaceConfig extends AbstractMethodConfig {
      * @param provider the provider
      * @return the list
      */
-    protected List<URL> loadRegistries(boolean provider){
+    List<URL> loadRegistries(boolean provider){
         checkRegistry();
         List<URL> registryList =new ArrayList<>();
-        if (!CollectionUtils.isEmpty(registries)){
-            for (RegistryConfig config : registries){
-                String address = config.getAddress();
-                if (StringUtils.isBlank(address)) {
-                    address = Constants.ANY_HOST_VALUE;
+        if (CollectionUtils.isEmpty(registries)){
+            return registryList;
+        }
+        for (RegistryConfig config : registries){
+            String address = config.getAddress();
+            if (StringUtils.isBlank(address)) {
+                address = Constants.ANY_HOST_VALUE;
+            }
+            if (!RegistryConfig.NO_AVAILABLE.equalsIgnoreCase(address)){
+                Map<String, String> map = new HashMap<>();
+                appendParameters(map, application);
+                appendParameters(map, config);
+                map.put("path", RegistryService.class.getName());
+                map.put(Constants.RPC_VERSION_KEY,Version.getVersion());
+                map.put(Constants.TIMESTAMP_KEY,String.valueOf(System.currentTimeMillis()));
+
+                if (ConfigUtils.getPid() > 0){
+                    map.put(Constants.PID_KEY, String.valueOf(ConfigUtils.getPid()));
                 }
-                if (!RegistryConfig.NO_AVAILABLE.equalsIgnoreCase(address)){
-                    Map<String, String> map = new HashMap<>();
-                    appendParameters(map, application);
-                    appendParameters(map, config);
-                    map.put("path", RegistryService.class.getName());
-                    map.put(Constants.RPC_VERSION_KEY,Version.getVersion());
-                    map.put(Constants.TIMESTAMP_KEY,String.valueOf(System.currentTimeMillis()));
 
-                    if (ConfigUtils.getPid() > 0){
-                        map.put(Constants.PID_KEY, String.valueOf(ConfigUtils.getPid()));
+                if (!map.containsKey(Constants.PROTOCOL_KEY)){
+                    if (ExtensionLoader.getExtensionLoader(RegistryFactory.class).hasExtension(Constants.REMOTE_KEY)){
+                        map.put(Constants.PROTOCOL_KEY, Constants.REMOTE_KEY);
+                    }else {
+                        map.put(Constants.PROTOCOL_KEY, Constants.RPC_KEY);
                     }
+                }
 
-                    if (!map.containsKey(Constants.PROTOCOL_KEY)){
-                        if (ExtensionLoader.getExtensionLoader(RegistryFactory.class).hasExtension(Constants.REMOTE_KEY)){
-                            map.put(Constants.PROTOCOL_KEY, Constants.REMOTE_KEY);
-                        }else {
-                            map.put(Constants.PROTOCOL_KEY, Constants.RPC_KEY);
-                        }
-                    }
+                List<URL> urls = UrlUtils.parseURLs(address, map);
 
-                    List<URL> urls = UrlUtils.parseURLs(address, map);
-
-                    for (URL url: urls){
+                if (CollectionUtils.isEmpty(urls)){
+                    registryList.addAll(urls.stream().map(url -> {
                         url = url.addParameter(Constants.REGISTRY_KEY, url.getProtocol());
                         url = url.setProtocol(Constants.REGISTRY_PROTOCOL);
-                        if ((provider && url.getParameter(Constants.REGISTER_KEY, true))
-                                || (!provider && url.getParameter(Constants.SUBSCRIBE_KEY, true))) {
-                            registryList.add(url);
-                        }
-                    }
+                        return url;
+                    }).filter(url -> (provider&&url.getParameter(Constants.REGISTER_KEY, true)) ||(!provider && url.getParameter(Constants.SUBSCRIBE_KEY, true))).collect(Collectors.toList()));
                 }
             }
         }

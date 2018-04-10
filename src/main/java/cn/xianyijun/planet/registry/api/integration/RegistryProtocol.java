@@ -111,11 +111,10 @@ public class RegistryProtocol implements Protocol {
     private <T> URL getRegisteredProviderUrl(Invoker<T> originInvoker) {
         URL providerUrl = getProviderUrl(originInvoker);
         //注册中心看到的地址
-        final URL registeredProviderUrl = providerUrl.removeParameters(getFilteredKeys(providerUrl))
+        return providerUrl.removeParameters(getFilteredKeys(providerUrl))
                 .removeParameter(Constants.MONITOR_KEY)
                 .removeParameter(Constants.BIND_IP_KEY)
                 .removeParameter(Constants.BIND_PORT_KEY);
-        return registeredProviderUrl;
     }
 
     private String[] getFilteredKeys(URL url) {
