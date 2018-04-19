@@ -1,8 +1,5 @@
 package cn.xianyijun.planet.utils;
 
-import cn.xianyijun.planet.common.URL;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -12,6 +9,9 @@ import java.net.UnknownHostException;
 import java.util.Enumeration;
 import java.util.Random;
 import java.util.regex.Pattern;
+
+import cn.xianyijun.planet.common.URL;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * The type Net utils.
@@ -81,6 +81,16 @@ public class NetUtils {
                 || "localhost".equalsIgnoreCase(host)
                 || "0.0.0.0".equals(host)
                 || (LOCAL_IP_PATTERN.matcher(host).matches());
+    }
+
+    /**
+     * Is valid local host boolean.
+     *
+     * @param host the host
+     * @return the boolean
+     */
+    public static boolean isValidLocalHost(String host) {
+        return !isInvalidLocalHost(host);
     }
 
     /**
