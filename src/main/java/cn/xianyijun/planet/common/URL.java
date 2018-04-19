@@ -1,11 +1,9 @@
 package cn.xianyijun.planet.common;
 
-import cn.xianyijun.planet.utils.StringUtils;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -18,8 +16,14 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
+import cn.xianyijun.planet.utils.CollectionUtils;
+import cn.xianyijun.planet.utils.StringUtils;
+import lombok.Data;
+
 /**
  * The type Url.
+ *
+ * @author xianyijun
  */
 @Data
 public final class URL implements Serializable {
@@ -52,6 +56,17 @@ public final class URL implements Serializable {
 
     private volatile transient String string;
 
+    /**
+     * Instantiates a new Url.
+     *
+     * @param protocol the protocol
+     * @param host     the host
+     * @param port     the port
+     * @param pairs    the pairs
+     */
+    public URL(String protocol, String host, int port, String[] pairs) { // varargs ... confilict with the following path argument, use array instead.
+        this(protocol, null, null, host, port, null, CollectionUtils.toStringMap(pairs));
+    }
 
     /**
      * Instantiates a new Url.
@@ -331,6 +346,7 @@ public final class URL implements Serializable {
         }
         return address.toString();
     }
+
     private String appendDefaultPort(String address, int defaultPort) {
         if (address != null && address.length() > 0
                 && defaultPort > 0) {
@@ -675,9 +691,9 @@ public final class URL implements Serializable {
      * @param url the url
      * @return the url
      */
-    public static URL valueOf(String url){
-        if (url == null || (url = url.trim()).length() ==0){
-            throw new  IllegalArgumentException("url can not be null");
+    public static URL valueOf(String url) {
+        if (url == null || (url = url.trim()).length() == 0) {
+            throw new IllegalArgumentException("url can not be null");
         }
         String protocol = null;
         String username = null;
@@ -688,16 +704,16 @@ public final class URL implements Serializable {
 
         String path = null;
 
-        Map<String,String> parameters = null;
+        Map<String, String> parameters = null;
 
         int index = url.indexOf("?");
 
-        if (index > 0){
+        if (index > 0) {
             String[] parts = url.substring(index + 1).split("\\&");
             parameters = new HashMap<>();
-            for (String part : parts){
+            for (String part : parts) {
                 part = part.trim();
-                if (part.length() > 0){
+                if (part.length() > 0) {
                     int j = part.indexOf('=');
                     if (j >= 0) {
                         parameters.put(part.substring(0, j), part.substring(j + 1));
@@ -718,7 +734,7 @@ public final class URL implements Serializable {
         } else {
             index = url.indexOf(":/");
             if (index >= 0) {
-                if (index == 0){
+                if (index == 0) {
                     throw new IllegalStateException("url missing protocol: \"" + url + "\"");
                 }
                 protocol = url.substring(0, index);
@@ -922,22 +938,22 @@ public final class URL implements Serializable {
      * @return the raw parameter
      */
     public String getRawParameter(String key) {
-        if ("protocol".equals(key)){
+        if ("protocol".equals(key)) {
             return protocol;
         }
-        if ("username".equals(key)){
+        if ("username".equals(key)) {
             return username;
         }
-        if ("password".equals(key)){
+        if ("password".equals(key)) {
             return password;
         }
-        if ("host".equals(key)){
+        if ("host".equals(key)) {
             return host;
         }
-        if ("port".equals(key)){
+        if ("port".equals(key)) {
             return String.valueOf(port);
         }
-        if ("path".equals(key)){
+        if ("path".equals(key)) {
             return path;
         }
         return getParameter(key);
@@ -1090,6 +1106,14 @@ public final class URL implements Serializable {
         return buildString(true, false, true, true);
     }
 
+    public java.net.URL toJavaURL() {
+        try {
+            return new java.net.URL(toString());
+        } catch (MalformedURLException e) {
+            throw new IllegalStateException(e.getMessage(), e);
+        }
+    }
+
     /**
      * To map map.
      *
@@ -1097,22 +1121,22 @@ public final class URL implements Serializable {
      */
     public Map<String, String> toMap() {
         Map<String, String> map = new HashMap<String, String>(parameters);
-        if (protocol != null){
+        if (protocol != null) {
             map.put("protocol", protocol);
         }
-        if (username != null){
+        if (username != null) {
             map.put("username", username);
         }
-        if (password != null){
+        if (password != null) {
             map.put("password", password);
         }
-        if (host != null){
+        if (host != null) {
             map.put("host", host);
         }
         if (port > 0) {
             map.put("port", String.valueOf(port));
         }
-        if (path != null){
+        if (path != null) {
             map.put("path", path);
         }
         return map;
@@ -1151,4 +1175,11 @@ public final class URL implements Serializable {
         return new URL(protocol, username, password, host, port, path, new HashMap<>());
     }
 
+    @Override
+    public String toString() {
+        if (string != null) {
+            return string;
+        }
+        return string = buildString(false, true);
+    }
 }
