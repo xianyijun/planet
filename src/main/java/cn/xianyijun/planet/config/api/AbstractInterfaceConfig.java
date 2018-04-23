@@ -1,5 +1,11 @@
 package cn.xianyijun.planet.config.api;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import cn.xianyijun.planet.common.Constants;
 import cn.xianyijun.planet.common.URL;
 import cn.xianyijun.planet.common.Version;
@@ -15,19 +21,13 @@ import cn.xianyijun.planet.utils.UrlUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 /**
  * The type Abstract interface config.
  *
  * @author xianyijun
  */
 @Data
-@EqualsAndHashCode(callSuper=false)
+@EqualsAndHashCode(callSuper = false)
 public class AbstractInterfaceConfig extends AbstractMethodConfig {
 
     /**
@@ -173,45 +173,45 @@ public class AbstractInterfaceConfig extends AbstractMethodConfig {
      * @param provider the provider
      * @return the list
      */
-    List<URL> loadRegistries(boolean provider){
+    List<URL> loadRegistries(boolean provider) {
         checkRegistry();
-        List<URL> registryList =new ArrayList<>();
-        if (CollectionUtils.isEmpty(registries)){
+        List<URL> registryList = new ArrayList<>();
+        if (CollectionUtils.isEmpty(registries)) {
             return registryList;
         }
-        for (RegistryConfig config : registries){
+        for (RegistryConfig config : registries) {
             String address = config.getAddress();
             if (StringUtils.isBlank(address)) {
                 address = Constants.ANY_HOST_VALUE;
             }
-            if (!RegistryConfig.NO_AVAILABLE.equalsIgnoreCase(address)){
+            if (!RegistryConfig.NO_AVAILABLE.equalsIgnoreCase(address)) {
                 Map<String, String> map = new HashMap<>();
                 appendParameters(map, application);
                 appendParameters(map, config);
                 map.put("path", RegistryService.class.getName());
-                map.put(Constants.RPC_VERSION_KEY,Version.getVersion());
-                map.put(Constants.TIMESTAMP_KEY,String.valueOf(System.currentTimeMillis()));
+                map.put(Constants.RPC_VERSION_KEY, Version.getVersion());
+                map.put(Constants.TIMESTAMP_KEY, String.valueOf(System.currentTimeMillis()));
 
-                if (ConfigUtils.getPid() > 0){
+                if (ConfigUtils.getPid() > 0) {
                     map.put(Constants.PID_KEY, String.valueOf(ConfigUtils.getPid()));
                 }
 
-                if (!map.containsKey(Constants.PROTOCOL_KEY)){
-                    if (ExtensionLoader.getExtensionLoader(RegistryFactory.class).hasExtension(Constants.REMOTE_KEY)){
+                if (!map.containsKey(Constants.PROTOCOL_KEY)) {
+                    if (ExtensionLoader.getExtensionLoader(RegistryFactory.class).hasExtension(Constants.REMOTE_KEY)) {
                         map.put(Constants.PROTOCOL_KEY, Constants.REMOTE_KEY);
-                    }else {
+                    } else {
                         map.put(Constants.PROTOCOL_KEY, Constants.RPC_KEY);
                     }
                 }
 
                 List<URL> urls = UrlUtils.parseURLs(address, map);
 
-                if (CollectionUtils.isEmpty(urls)){
+                if (!CollectionUtils.isEmpty(urls)) {
                     registryList.addAll(urls.stream().map(url -> {
                         url = url.addParameter(Constants.REGISTRY_KEY, url.getProtocol());
                         url = url.setProtocol(Constants.REGISTRY_PROTOCOL);
                         return url;
-                    }).filter(url -> (provider&&url.getParameter(Constants.REGISTER_KEY, true)) ||(!provider && url.getParameter(Constants.SUBSCRIBE_KEY, true))).collect(Collectors.toList()));
+                    }).filter(url -> (provider && url.getParameter(Constants.REGISTER_KEY, true)) || (!provider && url.getParameter(Constants.SUBSCRIBE_KEY, true))).collect(Collectors.toList()));
                 }
             }
         }

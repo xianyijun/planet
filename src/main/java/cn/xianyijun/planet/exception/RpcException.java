@@ -3,7 +3,7 @@ package cn.xianyijun.planet.exception;
 /**
  * Created by xianyijun on 2017/10/22.
  */
-public final class RpcException extends RuntimeException{
+public final class RpcException extends RuntimeException {
 
     /**
      * The constant UNKNOWN_EXCEPTION.
@@ -30,7 +30,8 @@ public final class RpcException extends RuntimeException{
      */
     public static final int SERIALIZATION_EXCEPTION = 5;
     private static final long serialVersionUID = 7815426752583648734L;
-    private int code; // RpcException不能有子类，异常类型用ErrorCode表示，以便保持兼容。
+    private int code;
+    // RpcException不能有子类，异常类型用ErrorCode表示，以便保持兼容。
 
     /**
      * Instantiates a new Rpc exception.

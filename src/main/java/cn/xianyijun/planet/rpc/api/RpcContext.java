@@ -1,17 +1,18 @@
 package cn.xianyijun.planet.rpc.api;
 
-import cn.xianyijun.planet.common.URL;
-import lombok.Getter;
-import lombok.Setter;
-
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
 
+import cn.xianyijun.planet.common.URL;
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * The type Rpc context.
+ *
  * @author xianyijun
  */
 @Getter
@@ -36,6 +37,10 @@ public class RpcContext {
     private InetSocketAddress localAddress;
 
     private InetSocketAddress remoteAddress;
+
+    private Object request;
+
+    private Object response;
 
     /**
      * Gets context.
@@ -115,15 +120,15 @@ public class RpcContext {
         return this;
     }
 
-    public RpcContext setUrl(URL url){
-        if (url != null){
+    public RpcContext setUrl(URL url) {
+        if (url != null) {
             this.url = url;
         }
         return this;
     }
 
-    public RpcContext setInvocation(Invocation invocation){
-        if (invocation != null){
+    public RpcContext setInvocation(Invocation invocation) {
+        if (invocation != null) {
             setMethodName(invocation.getMethodName());
             setParameterTypes(invocation.getParameterTypes());
             setArguments(invocation.getArguments());

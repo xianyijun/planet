@@ -1,10 +1,5 @@
 package cn.xianyijun.planet.rpc.api.protocol;
 
-import cn.xianyijun.planet.common.URL;
-import cn.xianyijun.planet.rpc.api.Exporter;
-import cn.xianyijun.planet.rpc.api.Invoker;
-import cn.xianyijun.planet.rpc.api.Protocol;
-import cn.xianyijun.planet.utils.ProtocolUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,8 +9,16 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+import cn.xianyijun.planet.common.URL;
+import cn.xianyijun.planet.rpc.api.Exporter;
+import cn.xianyijun.planet.rpc.api.Invoker;
+import cn.xianyijun.planet.rpc.api.Protocol;
+import cn.xianyijun.planet.utils.ProtocolUtils;
+
 /**
  * The type Abstract protocol.
+ *
+ * @author xianyijun
  */
 public abstract class AbstractProtocol implements Protocol {
     /**

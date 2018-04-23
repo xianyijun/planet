@@ -24,6 +24,7 @@ public class ClientMain {
         registry.setPassword("bbb");
 
         ClientConfig<ProcessService> reference = new ClientConfig<>();
+        reference.setProtocol("http");
         reference.setApplication(application);
         reference.setRegistry(registry); // 多个注册中心可以用setRegistries()
         reference.setInterface(ProcessService.class);

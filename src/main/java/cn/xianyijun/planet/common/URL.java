@@ -1182,4 +1182,18 @@ public final class URL implements Serializable {
         }
         return string = buildString(false, true);
     }
+
+    public String getAbsolutePath() {
+        if (path != null && !path.startsWith("/")) {
+            return "/" + path;
+        }
+        return path;
+    }
+
+    public String toIdentityString() {
+        if (identity != null) {
+            return identity;
+        }
+        return identity = buildString(true, false); // only return identity message, see the method "equals" and "hashCode"
+    }
 }

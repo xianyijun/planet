@@ -1,11 +1,11 @@
 package cn.xianyijun.planet.test.demo;
 
+import java.io.IOException;
+
 import cn.xianyijun.planet.config.api.ApplicationConfig;
 import cn.xianyijun.planet.config.api.ProtocolConfig;
 import cn.xianyijun.planet.config.api.RegistryConfig;
 import cn.xianyijun.planet.config.api.ServiceConfig;
-
-import java.io.IOException;
 
 /**
  * The type Service main.
@@ -28,7 +28,7 @@ public class ServiceMain {
         registryConfig.setPassword("bbb");
 
         ProtocolConfig protocolConfig = new ProtocolConfig();
-        protocolConfig.setName("rpc");
+        protocolConfig.setName("http");
         protocolConfig.setPort(20880);
         protocolConfig.setThreads(5);
 
@@ -46,7 +46,7 @@ public class ServiceMain {
             System.in.read();
         } catch (IOException e) {
             e.printStackTrace();
-        }finally {
+        } finally {
             try {
                 System.in.close();
             } catch (IOException e) {

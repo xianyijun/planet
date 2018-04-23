@@ -2,3 +2,5 @@ injvm=cn.xianyijun.planet.rpc.injvm.InJVMProtocol
 registry=cn.xianyijun.planet.registry.api.integration.RegistryProtocol
 rpc=cn.xianyijun.planet.rpc.rpc.RpcProtocol
 filter=cn.xianyijun.planet.rpc.api.protocol.ProtocolFilterWrapper
+rest=cn.xianyijun.planet.rpc.rest.RestProtocol
+http=cn.xianyijun.planet.rpc.http.HttpProtocol

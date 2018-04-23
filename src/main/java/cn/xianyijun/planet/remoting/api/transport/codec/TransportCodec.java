@@ -1,5 +1,11 @@
 package cn.xianyijun.planet.remoting.api.transport.codec;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+
 import cn.xianyijun.planet.common.Constants;
 import cn.xianyijun.planet.common.URL;
 import cn.xianyijun.planet.common.serialize.ObjectInput;
@@ -12,14 +18,10 @@ import cn.xianyijun.planet.remoting.api.buffer.ChannelBufferOutputStream;
 import cn.xianyijun.planet.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
-
 /**
  * The type Transport codec.
+ *
+ * @author xianyijun
  */
 @Slf4j
 public class TransportCodec extends AbstractCodec {

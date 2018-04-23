@@ -5,8 +5,6 @@ import org.mortbay.jetty.nio.SelectChannelConnector;
 import org.mortbay.jetty.servlet.Context;
 import org.mortbay.jetty.servlet.ServletHandler;
 import org.mortbay.jetty.servlet.ServletHolder;
-import org.mortbay.log.Log;
-import org.mortbay.log.StdErrLog;
 import org.mortbay.thread.QueuedThreadPool;
 
 import cn.xianyijun.planet.common.Constants;
@@ -31,9 +29,6 @@ public class JettyHttpServer extends AbstractHttpServer {
     public JettyHttpServer(URL url, final HttpHandler handler) {
         super(url, handler);
         this.url = url;
-        Log.setLog(new StdErrLog());
-        Log.getLog().setDebugEnabled(false);
-
         DispatcherServlet.addHttpHandler(url.getParameter(Constants.BIND_PORT_KEY, url.getPort()), handler);
 
         int threads = url.getParameter(Constants.THREADS_KEY, Constants.DEFAULT_THREADS);

@@ -63,6 +63,9 @@ public class Constants {
 
     public static final String CHANNEL_CALLBACK_KEY = "channel.callback.invokers.key";
 
+    public static final String KEEP_ALIVE_KEY = "keepalive";
+
+    public static final boolean DEFAULT_KEEP_ALIVE = true;
     /**
      * The constant IDLE_TIMEOUT_KEY.
      */
@@ -195,6 +198,8 @@ public class Constants {
      * The constant INTERFACE_KEY.
      */
     public static final String INTERFACE_KEY = "interface";
+
+    public static final String EXTENSION_KEY = "extension";
 
     /**
      * The constant COMMA_SPLIT_PATTERN.
@@ -574,7 +579,7 @@ public class Constants {
     /**
      * The constant SCOPE_KEY.
      */
-    public static final String SCOPE_KEY ="scope";
+    public static final String SCOPE_KEY = "scope";
 
     /**
      * The constant CATEGORY_KEY.
@@ -674,7 +679,7 @@ public class Constants {
     /**
      * The constant RPC_PORT_TO_REGISTRY.
      */
-    public static final String RPC_PORT_TO_REGISTRY ="RPC_PORT_TO_REGISTRY";
+    public static final String RPC_PORT_TO_REGISTRY = "RPC_PORT_TO_REGISTRY";
 
     /**
      * The constant METHODS_KEY.
@@ -724,7 +729,7 @@ public class Constants {
     /**
      * The constant DEFAULT_CATEGORY.
      */
-    public static final String DEFAULT_CATEGORY  = PROVIDERS_CATEGORY;
+    public static final String DEFAULT_CATEGORY = PROVIDERS_CATEGORY;
 
     /**
      * The constant REMOVE_VALUE_PREFIX.

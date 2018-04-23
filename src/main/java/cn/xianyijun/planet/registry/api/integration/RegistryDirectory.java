@@ -1,5 +1,16 @@
 package cn.xianyijun.planet.registry.api.integration;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import cn.xianyijun.planet.cluster.api.Cluster;
 import cn.xianyijun.planet.cluster.api.Configurator;
 import cn.xianyijun.planet.cluster.api.ConfiguratorFactory;
@@ -29,17 +40,6 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 
 /**
  * The type Registry directory.
@@ -54,7 +54,7 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
 
     private static final RouterFactory routerFactory = new ConditionRouterFactory();
 
-    private static final ConfiguratorFactory configuratorFactory  = ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class).getAdaptiveExtension();
+    private static final ConfiguratorFactory configuratorFactory = ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class).getAdaptiveExtension();
 
     @NonNull
     private final String serviceKey;
@@ -95,10 +95,10 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
      */
     public RegistryDirectory(Class<T> serviceType, URL url) {
         super(url);
-        if (serviceType == null){
+        if (serviceType == null) {
             throw new IllegalArgumentException("service type is null.");
         }
-        if (url.getServiceKey() == null || url.getServiceKey().length() == 0){
+        if (url.getServiceKey() == null || url.getServiceKey().length() == 0) {
             throw new IllegalArgumentException("registry serviceKey is null.");
         }
         this.serviceType = serviceType;
@@ -158,11 +158,11 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
             }
         }
 
-        if (configuratorUrls != null && configuratorUrls.size() > 0) {
+        if (configuratorUrls.size() > 0) {
             this.configurators = toConfigurators(configuratorUrls);
         }
 
-        if (routerUrls != null && routerUrls.size() > 0) {
+        if (routerUrls.size() > 0) {
             List<Router> routers = toRouters(routerUrls);
             if (routers != null) {
                 setRouters(routers);
@@ -182,11 +182,11 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
 
     private void refreshInvoker(List<URL> invokerUrls) {
         if (invokerUrls != null && invokerUrls.size() == 1 && invokerUrls.get(0) != null
-                && Constants.EMPTY_PROTOCOL.equals(invokerUrls.get(0).getProtocol())){
+                && Constants.EMPTY_PROTOCOL.equals(invokerUrls.get(0).getProtocol())) {
             this.forbidden = true;
             this.methodInvokerMap = null;
             destroyAllInvokers();
-        }else {
+        } else {
             this.forbidden = false;
             Map<String, Invoker<T>> oldUrlInvokerMap = this.urlInvokerMap;
             if (invokerUrls.size() == 0 && this.cachedInvokerUrls != null) {
@@ -215,10 +215,10 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
         }
     }
 
-    private Map<String, Invoker<T>> toInvokers(List<URL> urls){
+    private Map<String, Invoker<T>> toInvokers(List<URL> urls) {
         Map<String, Invoker<T>> newUrlInvokerMap = new HashMap<>();
 
-        if (urls == null || urls.isEmpty()){
+        if (urls == null || urls.isEmpty()) {
             return newUrlInvokerMap;
         }
 
@@ -409,7 +409,7 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
                 }
                 try {
                     Router router = routerFactory.getRouter(url);
-                    if (!routers.contains(router)){
+                    if (!routers.contains(router)) {
                         routers.add(router);
                     }
                 } catch (Throwable t) {
@@ -553,19 +553,19 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
 
     @Override
     protected List<Invoker<T>> doList(Invocation invocation) throws RpcException {
-        if (forbidden){
+        if (forbidden) {
             throw new RpcException(RpcException.FORBIDDEN_EXCEPTION);
         }
         List<Invoker<T>> invokers = null;
         Map<String, List<Invoker<T>>> localMethodInvokerMap = getMethodInvokerMap(); // local reference
-        if (MapUtils.isEmpty(localMethodInvokerMap)){
+        if (MapUtils.isEmpty(localMethodInvokerMap)) {
             return Collections.emptyList();
         }
         String methodName = RpcUtils.getMethodName(invocation);
         Object[] args = RpcUtils.getArguments(invocation);
 
         if (!ArrayUtils.isEmpty(args) && args[0] != null &&
-                (args[0] instanceof String || args[0].getClass().isEnum())){
+                (args[0] instanceof String || args[0].getClass().isEnum())) {
             invokers = localMethodInvokerMap.get(methodName + "." + args[0]);
         }
         if (invokers == null) {
