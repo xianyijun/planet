@@ -27,6 +27,7 @@ import cn.xianyijun.planet.common.bytecode.Wrapper;
 import cn.xianyijun.planet.common.extension.ExtensionLoader;
 import cn.xianyijun.planet.config.annotation.RpcService;
 import cn.xianyijun.planet.config.invoker.DelegateProviderMetaDataInvoker;
+import cn.xianyijun.planet.rpc.ServiceClassHolder;
 import cn.xianyijun.planet.rpc.api.Exporter;
 import cn.xianyijun.planet.rpc.api.Invoker;
 import cn.xianyijun.planet.rpc.api.Protocol;
@@ -223,7 +224,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         appendParameters(map, protocolConfig);
         appendParameters(map, this);
 
-        if (methods != null && !methods.isEmpty()) {
+        if (!CollectionUtils.isEmpty(methods)) {
             methods.stream().filter(Objects::nonNull).forEach(method -> {
                 appendParameters(map, method, method.getName());
                 String retryKey = method.getName() + ".retry";
@@ -422,6 +423,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                     .setProtocol(Constants.LOCAL_PROTOCOL)
                     .setHost(NetUtils.LOCALHOST)
                     .setPort(0);
+            ServiceClassHolder.getInstance().pushServiceClass(getServiceClass(ref));
             Exporter<?> exporter = PROTOCOL.export(
                     PROXY_FACTORY.getInvoker(ref, (Class) interfaceClass, local));
             exporters.add(exporter);

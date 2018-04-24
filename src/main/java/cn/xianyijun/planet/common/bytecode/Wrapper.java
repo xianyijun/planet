@@ -1,9 +1,5 @@
 package cn.xianyijun.planet.common.bytecode;
 
-import cn.xianyijun.planet.exception.NoSuchPropertyException;
-import cn.xianyijun.planet.utils.ClassHelper;
-import cn.xianyijun.planet.utils.ReflectUtils;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -17,11 +13,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 
+import cn.xianyijun.planet.exception.NoSuchPropertyException;
+import cn.xianyijun.planet.utils.ClassHelper;
+import cn.xianyijun.planet.utils.ReflectUtils;
+
 /**
  * The type Wrapper.
+ *
  * @author xianyijun
  */
 public abstract class Wrapper {
+
     private static final Map<Class<?>, Wrapper> WRAPPER_MAP = new ConcurrentHashMap<>();
     private static final String[] EMPTY_STRING_ARRAY = new String[0];
     private static final String[] OBJECT_METHODS = new String[]{"getClass", "hashCode", "toString", "equals"};

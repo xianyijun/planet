@@ -10,7 +10,7 @@ public class NameSpaceHandlerTest {
     @Test
     public void testProvider() {
         ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-                new String[] {"application-provider.xml"});
+                new String[]{"application-provider.xml"});
         context.start();
         try {
             System.in.read();
@@ -22,10 +22,10 @@ public class NameSpaceHandlerTest {
     @Test
     public void testConsumer() {
         ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-                new String[] {"application-consumer.xml"});
+                new String[]{"application-consumer.xml"});
         context.start();
         ProcessService processService = (ProcessService) context.getBean("processService");
-        System.out.println(processService.test("test"));
+        System.out.println(processService.test());
     }
 }
 

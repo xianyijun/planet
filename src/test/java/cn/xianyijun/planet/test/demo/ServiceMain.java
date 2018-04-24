@@ -28,7 +28,8 @@ public class ServiceMain {
         registryConfig.setPassword("bbb");
 
         ProtocolConfig protocolConfig = new ProtocolConfig();
-        protocolConfig.setName("http");
+        protocolConfig.setServer("netty");
+        protocolConfig.setName("rest");
         protocolConfig.setPort(20880);
         protocolConfig.setThreads(5);
 

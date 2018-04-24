@@ -1,5 +1,7 @@
 package cn.xianyijun.planet.rpc.api.proxy;
 
+import java.lang.reflect.InvocationTargetException;
+
 import cn.xianyijun.planet.common.URL;
 import cn.xianyijun.planet.exception.RpcException;
 import cn.xianyijun.planet.rpc.api.Invocation;
@@ -7,13 +9,11 @@ import cn.xianyijun.planet.rpc.api.Invoker;
 import cn.xianyijun.planet.rpc.api.Result;
 import cn.xianyijun.planet.rpc.api.RpcResult;
 
-import java.lang.reflect.InvocationTargetException;
-
 /**
  * The type Abstract proxy invoker.
  *
- * @author xianyijun
  * @param <T> the type parameter
+ * @author xianyijun
  */
 public abstract class AbstractProxyInvoker<T> implements Invoker<T> {
     private final T proxy;
@@ -88,7 +88,7 @@ public abstract class AbstractProxyInvoker<T> implements Invoker<T> {
 
     @Override
     public String toString() {
-        return getInterface() + " -> " + getUrl() == null ? " " : getUrl().toString();
+        return getUrl().toString();
     }
 
 }

@@ -24,13 +24,13 @@ public class ClientMain {
         registry.setPassword("bbb");
 
         ClientConfig<ProcessService> reference = new ClientConfig<>();
-        reference.setProtocol("http");
+        reference.setProtocol("rest");
         reference.setApplication(application);
         reference.setRegistry(registry); // 多个注册中心可以用setRegistries()
         reference.setInterface(ProcessService.class);
         reference.setVersion("2.0.0");
 
         ProcessService demoService = reference.get();
-        System.out.println(demoService.test("hello"));
+        System.out.println(demoService.test());
     }
 }
