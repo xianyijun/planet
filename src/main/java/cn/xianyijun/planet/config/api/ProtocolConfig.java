@@ -1,17 +1,19 @@
 package cn.xianyijun.planet.config.api;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 /**
  * The type Protocol config.
+ *
+ * @author xianyijun
  */
 @Data
-@EqualsAndHashCode(callSuper=false)
-public class ProtocolConfig extends AbstractConfig{
+@EqualsAndHashCode(callSuper = false)
+public class ProtocolConfig extends AbstractConfig {
     private String name;
 
     private String host;
@@ -70,13 +72,16 @@ public class ProtocolConfig extends AbstractConfig{
 
     private static final AtomicBoolean destroyed = new AtomicBoolean(false);
 
+    static {
+        Runtime.getRuntime().addShutdownHook(new Thread(ProtocolConfig::destroyAll, "RpcShutdownHook"));
+    }
+
     /**
      * Destroy all.
      */
-    public static void destroyAll(){
+    public static void destroyAll() {
         if (!destroyed.compareAndSet(false, true)) {
             return;
         }
-
     }
 }

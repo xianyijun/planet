@@ -21,6 +21,9 @@ import cn.xianyijun.planet.remoting.http.servlet.BootstrapListener;
 import cn.xianyijun.planet.remoting.http.servlet.ServletManager;
 import cn.xianyijun.planet.rpc.api.RpcContext;
 
+/**
+ * @author xianyijun
+ */
 public class RpcHttpServer extends AbstractRestServer {
 
     private final HttpServletDispatcher dispatcher = new HttpServletDispatcher();

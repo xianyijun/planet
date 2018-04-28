@@ -1,18 +1,5 @@
 package cn.xianyijun.planet.registry.api.support;
 
-import cn.xianyijun.planet.common.Constants;
-import cn.xianyijun.planet.common.URL;
-import cn.xianyijun.planet.registry.api.NotifyListener;
-import cn.xianyijun.planet.registry.api.Registry;
-import cn.xianyijun.planet.utils.CollectionUtils;
-import cn.xianyijun.planet.utils.ConcurrentHashSet;
-import cn.xianyijun.planet.utils.ConfigUtils;
-import cn.xianyijun.planet.utils.NamedThreadFactory;
-import cn.xianyijun.planet.utils.StringUtils;
-import cn.xianyijun.planet.utils.UrlUtils;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -36,6 +23,19 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+
+import cn.xianyijun.planet.common.Constants;
+import cn.xianyijun.planet.common.URL;
+import cn.xianyijun.planet.registry.api.NotifyListener;
+import cn.xianyijun.planet.registry.api.Registry;
+import cn.xianyijun.planet.utils.CollectionUtils;
+import cn.xianyijun.planet.utils.ConcurrentHashSet;
+import cn.xianyijun.planet.utils.ConfigUtils;
+import cn.xianyijun.planet.utils.NamedThreadFactory;
+import cn.xianyijun.planet.utils.StringUtils;
+import cn.xianyijun.planet.utils.UrlUtils;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * The type Abstract registry.
@@ -98,17 +98,17 @@ public abstract class AbstractRegistry implements Registry {
      * @param urlList the url list
      */
     protected void notify(List<URL> urlList) {
-        if (urlList == null || urlList.isEmpty()){
+        if (urlList == null || urlList.isEmpty()) {
             return;
         }
-        getSubscribed().entrySet().stream().filter(Objects::nonNull).forEach(entry ->{
+        getSubscribed().entrySet().stream().filter(Objects::nonNull).forEach(entry -> {
             URL url = entry.getKey();
             if (!UrlUtils.isMatch(url, urlList.get(0))) {
                 return;
             }
             Set<NotifyListener> notifyListeners = entry.getValue();
-            if (notifyListeners != null && !notifyListeners.isEmpty()){
-                notifyListeners.stream().filter(Objects::nonNull).forEach(notifyListener -> notify(url, notifyListener,filterEmpty(url, urlList)));
+            if (notifyListeners != null && !notifyListeners.isEmpty()) {
+                notifyListeners.stream().filter(Objects::nonNull).forEach(notifyListener -> notify(url, notifyListener, filterEmpty(url, urlList)));
             }
         });
     }
@@ -121,25 +121,21 @@ public abstract class AbstractRegistry implements Registry {
      * @param urls     the urls
      */
     protected void notify(URL url, NotifyListener listener, List<URL> urls) {
-        if (url == null){
-            throw  new  IllegalArgumentException("notify url can not be null");
+        if (url == null) {
+            throw new IllegalArgumentException("notify url can not be null");
         }
-        if (listener == null){
-            throw  new  IllegalArgumentException("listener  can not be null");
+        if (listener == null) {
+            throw new IllegalArgumentException("listener  can not be null");
         }
-        if (CollectionUtils.isEmpty(urls) && !Constants.ANY_VALUE.equals(url.getServiceInterface())){
+        if (CollectionUtils.isEmpty(urls) && !Constants.ANY_VALUE.equals(url.getServiceInterface())) {
             return;
         }
 
         Map<String, List<URL>> result = new HashMap<>();
 
-        urls.stream().filter(Objects::nonNull).filter(p -> UrlUtils.isMatch(url, p)).forEach(p ->{
-            String category = p.getParameter(Constants.CATEGORY_KEY,Constants.DEFAULT_CATEGORY);
-            List<URL> categoryList = result.get(category);
-            if (categoryList == null) {
-                categoryList = new ArrayList<>();
-                result.put(category, categoryList);
-            }
+        urls.stream().filter(Objects::nonNull).filter(p -> UrlUtils.isMatch(url, p)).forEach(p -> {
+            String category = p.getParameter(Constants.CATEGORY_KEY, Constants.DEFAULT_CATEGORY);
+            List<URL> categoryList = result.computeIfAbsent(category, k -> new ArrayList<>());
             categoryList.add(p);
         });
 
@@ -232,12 +228,12 @@ public abstract class AbstractRegistry implements Registry {
         }
         Set<URL> destroyRegistered = new HashSet<>(getRegistered());
 
-        if (!destroyRegistered.isEmpty()){
-            destroyRegistered.stream().filter(Objects::nonNull).filter(url -> url.getParameter(Constants.DYNAMIC_KEY,true)).forEach(this::unRegister);
+        if (!destroyRegistered.isEmpty()) {
+            destroyRegistered.stream().filter(Objects::nonNull).filter(url -> url.getParameter(Constants.DYNAMIC_KEY, true)).forEach(this::unRegister);
         }
         Map<URL, Set<NotifyListener>> destroySubscribed = new HashMap<>(getSubscribed());
-        if (!destroyRegistered.isEmpty()){
-            destroySubscribed.entrySet().stream().filter(Objects::nonNull).forEach(entry -> entry.getValue().stream().forEach(listener ->unSubscribe(entry.getKey(),listener)));
+        if (!destroyRegistered.isEmpty()) {
+            destroySubscribed.entrySet().stream().filter(Objects::nonNull).forEach(entry -> entry.getValue().stream().forEach(listener -> unSubscribe(entry.getKey(), listener)));
         }
     }
 
@@ -251,7 +247,7 @@ public abstract class AbstractRegistry implements Registry {
 
     @Override
     public void unRegister(URL url) {
-        if (url == null){
+        if (url == null) {
             throw new IllegalArgumentException("unRegister url can not be null");
         }
         registered.remove(url);
@@ -364,16 +360,16 @@ public abstract class AbstractRegistry implements Registry {
 
     @Override
     public void unSubscribe(URL url, NotifyListener listener) {
-        if (url == null){
+        if (url == null) {
             throw new IllegalArgumentException("unSubscribe url can not be null");
         }
-        if (listener == null){
+        if (listener == null) {
             throw new IllegalArgumentException("unSubscribe listener can not be null");
         }
 
         Set<NotifyListener> listeners = subscribed.get(url);
 
-        if (listeners != null){
+        if (listeners != null) {
             listeners.remove(listener);
         }
     }
@@ -429,7 +425,7 @@ public abstract class AbstractRegistry implements Registry {
         for (Map.Entry<Object, Object> entry : properties.entrySet()) {
             String key = (String) entry.getKey();
             String value = (String) entry.getValue();
-            if (StringUtils.isBlank(key) || StringUtils.isBlank(value)){
+            if (StringUtils.isBlank(key) || StringUtils.isBlank(value)) {
                 continue;
             }
             if (key.equals(url.getServiceKey()) && (Character.isLetter(key.charAt(0)) || key.charAt(0) == '_')) {
@@ -453,6 +449,7 @@ public abstract class AbstractRegistry implements Registry {
         private SaveProperties(long version) {
             this.version = version;
         }
+
         @Override
         public void run() {
             doSaveProperties(version);

@@ -1,5 +1,14 @@
 package cn.xianyijun.planet.registry.api.integration;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import cn.xianyijun.planet.cluster.api.Cluster;
 import cn.xianyijun.planet.cluster.api.Configurator;
 import cn.xianyijun.planet.common.Constants;
@@ -22,15 +31,6 @@ import cn.xianyijun.planet.utils.StringUtils;
 import cn.xianyijun.planet.utils.UrlUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * The type Registry protocol.
@@ -136,10 +136,10 @@ public class RegistryProtocol implements Protocol {
         String key = getCacheKey(originInvoker);
         ExporterChangeableWrapper<T> exporter = (ExporterChangeableWrapper<T>) bounds.get(key);
 
-        if (exporter == null){
-            synchronized (bounds){
+        if (exporter == null) {
+            synchronized (bounds) {
                 exporter = (ExporterChangeableWrapper<T>) bounds.get(key);
-                if (exporter == null){
+                if (exporter == null) {
                     final Invoker<?> invokerDelegate = new InvokerDelegate<>(originInvoker, getProviderUrl(originInvoker));
                     exporter = new ExporterChangeableWrapper<>((Exporter<T>) protocol.export(invokerDelegate), originInvoker);
                     bounds.put(key, exporter);
@@ -228,14 +228,12 @@ public class RegistryProtocol implements Protocol {
             throw new IllegalArgumentException("The registry export url is null! registry: " + originInvoker.getUrl());
         }
 
-        URL providerUrl = URL.valueOf(export);
-        return providerUrl;
+        return URL.valueOf(export);
     }
 
     private String getCacheKey(final Invoker<?> originInvoker) {
         URL providerUrl = getProviderUrl(originInvoker);
-        String key = providerUrl.removeParameters("dynamic", "enabled").toFullString();
-        return key;
+        return providerUrl.removeParameters("dynamic", "enabled").toFullString();
     }
 
     private URL getSubscribedOverrideUrl(URL registeredProviderUrl) {
@@ -446,6 +444,7 @@ public class RegistryProtocol implements Protocol {
             this.subscribeUrl = subscribeUrl;
             this.registerUrl = registerUrl;
         }
+
         @Override
         public Invoker<T> getInvoker() {
             return exporter.getInvoker();

@@ -1,15 +1,17 @@
 package cn.xianyijun.planet.config.api;
 
+import java.util.Map;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.Map;
-
 /**
  * The type Abstract method config.
+ *
+ * @author xianyijun
  */
 @Data
-@EqualsAndHashCode(callSuper=false)
+@EqualsAndHashCode(callSuper = false)
 public class AbstractMethodConfig extends AbstractConfig {
 
     /**
@@ -55,5 +57,5 @@ public class AbstractMethodConfig extends AbstractConfig {
     /**
      * The Parameters.
      */
-    protected Map<String,String> parameters;
+    protected Map<String, String> parameters;
 }

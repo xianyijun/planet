@@ -24,8 +24,6 @@ public class ServiceMain {
 
         RegistryConfig registryConfig = new RegistryConfig();
         registryConfig.setAddress("zookeeper://127.0.0.1:2181");
-        registryConfig.setUsername("aaa");
-        registryConfig.setPassword("bbb");
 
         ProtocolConfig protocolConfig = new ProtocolConfig();
         protocolConfig.setServer("netty");

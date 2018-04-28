@@ -10,6 +10,8 @@ import java.util.Set;
 
 /**
  * The type Class helper.
+ *
+ * @author xianyijun
  */
 public class ClassHelper {
     /**

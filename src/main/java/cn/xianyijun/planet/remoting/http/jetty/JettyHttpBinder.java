@@ -5,6 +5,9 @@ import cn.xianyijun.planet.remoting.http.HttpBinder;
 import cn.xianyijun.planet.remoting.http.HttpHandler;
 import cn.xianyijun.planet.remoting.http.HttpServer;
 
+/**
+ * @author xianyijun
+ */
 public class JettyHttpBinder implements HttpBinder {
 
     @Override

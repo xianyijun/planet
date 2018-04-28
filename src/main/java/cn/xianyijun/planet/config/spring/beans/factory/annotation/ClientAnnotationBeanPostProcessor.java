@@ -10,20 +10,35 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.PriorityOrdered;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
+import cn.xianyijun.planet.config.spring.ClientBean;
+
 /**
  * @author xianyijun
  */
-public class ClientAnnotationBeanPostProcessor extends InstantiationAwareBeanPostProcessorAdapter implements MergedBeanDefinitionPostProcessor, PriorityOrdered, ApplicationContextAware,BeanClassLoaderAware,DisposableBean{
+public class ClientAnnotationBeanPostProcessor extends InstantiationAwareBeanPostProcessorAdapter implements MergedBeanDefinitionPostProcessor, PriorityOrdered, ApplicationContextAware, BeanClassLoaderAware, DisposableBean {
 
     public static final String BEAN_NAME = "clientAnnotationBeanPostProcessor";
 
+    private ClassLoader classLoader;
+
+    private final ConcurrentMap<String, ClientBean<?>> clietnBeansCache =
+            new ConcurrentHashMap<>();
+
     @Override
     public void setBeanClassLoader(ClassLoader classLoader) {
-
+        this.classLoader = classLoader;
     }
 
     @Override
     public void destroy() throws Exception {
+        for (ClientBean clientBean : clietnBeansCache.values()) {
+            clientBean.destroy();
+        }
+
+        clietnBeansCache.clear();
 
     }
 

@@ -2,6 +2,7 @@ package cn.xianyijun.planet.config.api;
 
 import org.springframework.util.CollectionUtils;
 
+import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -238,10 +239,6 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
             });
         }
 
-        String revision = Version.getVersion(interfaceClass, version);
-        if (!StringUtils.isBlank(revision)) {
-            map.put("revision", revision);
-        }
         String[] methods = Wrapper.getWrapper(interfaceClass).getMethodNames();
         if (methods.length == 0) {
             map.put("methods", Constants.ANY_VALUE);
@@ -249,7 +246,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
             map.put("methods", StringUtils.join(new HashSet<>(Arrays.asList(methods)), ","));
         }
 
-        if (ConfigUtils.isEmpty(token)) {
+        if (!ConfigUtils.isEmpty(token)) {
             if (ConfigUtils.isDefault(token)) {
                 map.put("token", UUID.randomUUID().toString());
             } else {
@@ -270,7 +267,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         Integer port = this.findConfiguredPorts(protocolConfig, name, map);
 
         URL url = new URL(name, host, port, (contextPath == null || contextPath.length() == 0 ? "" : contextPath + "/") + path, map);
-        log.info(String.format("[doExportUrlsForProtocol] url : %s", url));
+        log.info(String.format("[doExportUrlsForProtocol] url : %s", url.toFullString()));
 
         if (ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
                 .hasExtension(url.getProtocol())) {
@@ -447,25 +444,27 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
             throw new IllegalStateException("The interface class " + interfaceClass + " is not a interface!");
         }
         // 检查方法是否在接口中存在
-        if (methods != null && methods.size() > 0) {
-            for (MethodConfig methodBean : methods) {
-                String methodName = methodBean.getName();
-                if (methodName == null || methodName.length() == 0) {
-                    throw new IllegalStateException(String.format("rpc method name attribute is required! Please check: interface = %s method name ", interfaceClass.getName()));
-                }
-                boolean hasMethod = false;
-                for (java.lang.reflect.Method method : interfaceClass.getMethods()) {
-                    if (method.getName().equals(methodName)) {
-                        hasMethod = true;
-                        break;
-                    }
-                }
-                if (!hasMethod) {
-                    throw new IllegalStateException("The interface " + interfaceClass.getName()
-                            + " not found method " + methodName);
+        if (CollectionUtils.isEmpty(methods)) {
+            return;
+        }
+        for (MethodConfig methodBean : methods) {
+            String methodName = methodBean.getName();
+            if (StringUtils.isBlank(methodName)) {
+                throw new IllegalStateException(String.format("rpc method name attribute is required! Please check: interface = %s method name ", interfaceClass.getName()));
+            }
+            boolean hasMethod = false;
+            for (Method method : interfaceClass.getMethods()) {
+                if (method.getName().equals(methodName)) {
+                    hasMethod = true;
+                    break;
                 }
             }
+            if (!hasMethod) {
+                throw new IllegalStateException("The interface " + interfaceClass.getName()
+                        + " not found method " + methodName);
+            }
         }
+
     }
 
     private void checkRef() {

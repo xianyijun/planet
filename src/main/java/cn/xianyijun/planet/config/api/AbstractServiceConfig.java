@@ -1,10 +1,10 @@
 package cn.xianyijun.planet.config.api;
 
+import java.util.Collections;
+import java.util.List;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * The type Abstract service config.
@@ -12,7 +12,7 @@ import java.util.List;
  * @author xianyijun
  */
 @Data
-@EqualsAndHashCode(callSuper=false)
+@EqualsAndHashCode(callSuper = false)
 public class AbstractServiceConfig extends AbstractInterfaceConfig {
 
     /**
@@ -24,11 +24,6 @@ public class AbstractServiceConfig extends AbstractInterfaceConfig {
      * The Group.
      */
     protected String group;
-
-    /**
-     * The Deprecated.
-     */
-    protected Boolean deprecated;
 
     /**
      * The Delay.
@@ -46,11 +41,6 @@ public class AbstractServiceConfig extends AbstractInterfaceConfig {
     protected Integer weight;
 
     /**
-     * The Document.
-     */
-    protected String document;
-
-    /**
      * The Dynamic.
      */
     protected Boolean dynamic;
@@ -59,8 +49,6 @@ public class AbstractServiceConfig extends AbstractInterfaceConfig {
      * The Token.
      */
     protected String token;
-
-    protected String accesslog;
 
     private Integer callbacks;
 
@@ -81,7 +69,7 @@ public class AbstractServiceConfig extends AbstractInterfaceConfig {
      * @param protocol the protocol
      */
     public void setProtocol(ProtocolConfig protocol) {
-        this.protocols = Arrays.asList(new ProtocolConfig[]{protocol});
+        this.protocols = Collections.singletonList(protocol);
     }
 
     /**

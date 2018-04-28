@@ -1,5 +1,11 @@
 package cn.xianyijun.planet.config.api;
 
+import java.io.Serializable;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.HashMap;
+import java.util.Map;
+
 import cn.xianyijun.planet.utils.CollectionUtils;
 import cn.xianyijun.planet.utils.ConfigUtils;
 import cn.xianyijun.planet.utils.ReflectUtils;
@@ -9,14 +15,9 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.Serializable;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * The type Abstract config.
+ *
  * @author xianyijun
  */
 @Data
@@ -25,12 +26,8 @@ import java.util.Map;
 @Slf4j
 public abstract class AbstractConfig implements Serializable {
 
-    private static final Map<String, String> legacyProperties = new HashMap<String, String>();
-    private static final String[] SUFFIXS = new String[]{"Config", "Bean"};
-
-    static {
-        Runtime.getRuntime().addShutdownHook(new Thread(ProtocolConfig::destroyAll, "RpcShutdownHook"));
-    }
+    private static final Map<String, String> LEGACY_PROPERTIES = new HashMap<>();
+    private static final String[] SUFFIXES = new String[]{"Config", "Bean"};
 
     /**
      * The Id.
@@ -90,7 +87,7 @@ public abstract class AbstractConfig implements Serializable {
                                     value = ConfigUtils.getProperty(prefix + property);
                                 }
                                 if (value == null || value.length() == 0) {
-                                    String legacyKey = legacyProperties.get(prefix + property);
+                                    String legacyKey = LEGACY_PROPERTIES.get(prefix + property);
                                     if (legacyKey != null && legacyKey.length() > 0) {
                                         value = convertLegacyValue(legacyKey, ConfigUtils.getProperty(legacyKey));
                                     }
@@ -112,7 +109,7 @@ public abstract class AbstractConfig implements Serializable {
 
     private static String getTagName(Class<?> cls) {
         String tag = cls.getSimpleName();
-        for (String suffix : SUFFIXS) {
+        for (String suffix : SUFFIXES) {
             if (tag.endsWith(suffix)) {
                 tag = tag.substring(0, tag.length() - suffix.length());
                 break;
